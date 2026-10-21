@@ -5,7 +5,10 @@ import "@/styles/memorial.css";
 
 export function MemorialHeader() {
   return <header className="memorial-header memorial-shell">
-    <Link className="memorial-brand" to="/">Nhịp cầu tri ân</Link>
+    <Link className="memorial-brand" to="/">
+      <img src="/cphaco-logo.png" alt="Logo CPHACO" width="60" height="60" />
+      <span>Nhịp cầu tri ân</span>
+    </Link>
     <Link className="memorial-header-link" to="/danh-sach">Tất cả nghệ sĩ</Link>
   </header>;
 }
