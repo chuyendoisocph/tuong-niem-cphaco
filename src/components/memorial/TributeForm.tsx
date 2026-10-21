@@ -6,7 +6,8 @@ export function TributeForm({ profileId, shortName }: { profileId: string; short
   const sendTribute = useSendTribute();
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
+  const [submitted, setSubmitted] = useState<"public" | "private" | null>(null);
   const [nameError, setNameError] = useState(false);
   const [contentError, setContentError] = useState(false);
   const [networkError, setNetworkError] = useState(false);
@@ -26,8 +27,9 @@ export function TributeForm({ profileId, shortName }: { profileId: string; short
         profile_id: profileId,
         author_name: authorName.trim(),
         content: content.trim(),
+        is_public: isPublic,
       });
-      setSubmitted(true);
+      setSubmitted(isPublic ? "public" : "private");
     } catch {
       setNetworkError(true);
     }
@@ -35,11 +37,12 @@ export function TributeForm({ profileId, shortName }: { profileId: string; short
 
   if (submitted) {
     return <div className="memorial-form-success" role="status">
-      <p>Lời tri ân của bạn đã được ghi lại.</p>
+      <p>{submitted === "public" ? "Lời tưởng nhớ của bạn đã được ghi lại." : "Lời tưởng nhớ của bạn đã được gửi riêng, không hiển thị trên trang."}</p>
       <button type="button" onClick={() => {
-        setSubmitted(false);
+        setSubmitted(null);
         setAuthorName("");
         setContent("");
+        setIsPublic(true);
         setNameError(false);
         setContentError(false);
         setNetworkError(false);
@@ -55,6 +58,7 @@ export function TributeForm({ profileId, shortName }: { profileId: string; short
         type="text"
         autoComplete="name"
         maxLength={100}
+        placeholder="Nguyễn Văn A"
         value={authorName}
         aria-invalid={nameError}
         aria-describedby={nameError ? `${id}-name-error` : undefined}
@@ -63,23 +67,26 @@ export function TributeForm({ profileId, shortName }: { profileId: string; short
       {nameError && <p id={`${id}-name-error`} className="memorial-field-error">Xin cho biết tên của bạn.</p>}
     </div>
     <div>
-      <label htmlFor={`${id}-content`}>Lời tri ân</label>
+      <label htmlFor={`${id}-content`}>Lời nhắn</label>
       <textarea
         id={`${id}-content`}
         rows={5}
         maxLength={2000}
-        placeholder={`Một ký ức, một tác phẩm bạn còn nhớ về ${shortName}`}
+        placeholder={`Viết đôi lời về những ký ức, tình cảm dành cho ${shortName}...`}
         value={content}
         aria-invalid={contentError}
-        aria-describedby={contentError ? `${id}-content-error ${id}-note` : `${id}-note`}
+        aria-describedby={contentError ? `${id}-content-error` : undefined}
         onChange={(event) => { setContent(event.target.value); if (contentError) setContentError(false); }}
       />
       {contentError && <p id={`${id}-content-error`} className="memorial-field-error">Xin viết đôi lời.</p>}
-      <p id={`${id}-note`} className="memorial-form-note">Lời của bạn sẽ hiển thị công khai cùng với tên.</p>
     </div>
+    <label className="memorial-checkbox">
+      <input type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} />
+      <span>Hiển thị công khai lời nhắn này</span>
+    </label>
     {networkError && <p className="memorial-form-error" role="alert">Chưa gửi được. Xin thử lại sau ít phút.</p>}
     <div><button className="memorial-button" type="submit" disabled={sendTribute.isPending || !profileId}>
-      {sendTribute.isPending ? "Đang gửi" : "Gửi lời tri ân"}
+      {sendTribute.isPending ? "Đang gửi" : "Gửi lời tưởng niệm"}
     </button></div>
   </form>;
 }

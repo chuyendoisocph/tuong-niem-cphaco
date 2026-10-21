@@ -7,7 +7,7 @@ export function MemorialHeader() {
   return <header className="memorial-header memorial-shell">
     <Link className="memorial-brand" to="/">
       <img src="/cphaco-logo.png" alt="Logo CPHACO" width="60" height="60" />
-      <span>Nhịp cầu tri ân</span>
+      <span className="memorial-brand-text"><span className="memorial-brand-name">Đường Nghệ sĩ</span><span className="memorial-brand-sub">Hoa Viên Bình Dương</span></span>
     </Link>
     <Link className="memorial-header-link" to="/danh-sach">Tất cả nghệ sĩ</Link>
   </header>;

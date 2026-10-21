@@ -12,7 +12,7 @@ export default function MemorialDirectory() {
   const [profession, setProfession] = useState("Tất cả");
 
   useEffect(() => {
-    updateMetaTags({ title: "Tất cả nghệ sĩ | Nhịp cầu tri ân", description: "Danh sách nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: "Tất cả nghệ sĩ | Đường Nghệ sĩ · Hoa Viên Bình Dương", description: "Danh sách nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
     return () => resetMetaTags();
   }, []);
 

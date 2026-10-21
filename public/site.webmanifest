@@ -1,0 +1,13 @@
+{
+  "name": "Đường Nghệ sĩ · Hoa Viên Bình Dương",
+  "short_name": "Đường Nghệ sĩ",
+  "lang": "vi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdfcf8",
+  "theme_color": "#fdfcf8",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

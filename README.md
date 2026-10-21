@@ -1,4 +1,4 @@
-# Nhịp cầu tri ân
+# Đường Nghệ sĩ · Hoa Viên Bình Dương
 
 Website tưởng niệm nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình Dương. Đây là ứng dụng riêng, tách khỏi giao diện và mã nguồn của Sổ Tang Điện Tử.
 

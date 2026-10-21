@@ -76,7 +76,7 @@ const updateMetaTag = (property: string, content: string) => {
 
 export const resetMetaTags = () => {
   updateMetaTags({
-    title: 'Nhịp cầu tri ân | Đường Nghệ sĩ, Hoa Viên Bình Dương',
+    title: 'Đường Nghệ sĩ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ',
     description: 'Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.',
     url: window.location.origin
   });

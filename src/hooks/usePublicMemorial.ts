@@ -43,7 +43,7 @@ export type Tribute = {
 };
 
 export type RecentTribute = Tribute & { artist: MemorialArtist };
-export type TributeSubmission = Pick<Tribute, "profile_id" | "author_name" | "content">;
+export type TributeSubmission = Pick<Tribute, "profile_id" | "author_name" | "content"> & { is_public: boolean };
 
 // The generated Supabase types predate memorial_items, memorial_flowers and the new profile columns.
 const db = supabase as unknown as SupabaseClient;
@@ -213,7 +213,7 @@ export function useRecentTributes(limit = 2) {
 export function useSendTribute() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ profile_id, author_name, content }: TributeSubmission): Promise<void> => {
+    mutationFn: async ({ profile_id, author_name, content, is_public }: TributeSubmission): Promise<void> => {
       const name = author_name.trim();
       const message = content.trim();
       if (!profile_id || !name || !message || name.length > 100 || message.length > 2000) {
@@ -223,6 +223,7 @@ export function useSendTribute() {
         profile_id,
         author_name: name,
         content: message,
+        is_public,
       });
       if (error) throw error;
     },

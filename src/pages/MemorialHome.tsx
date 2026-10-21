@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { ArrowRight, Flame, Search } from "lucide-react";
 import { MemorialFooter, MemorialHeader, MemorialImage, MemorialPortrait } from "@/components/memorial/MemorialLayout";
 import { useAllWorks, useArtists, useRecentTributes, type MemorialArtist } from "@/hooks/usePublicMemorial";
 import { deathsInMonth, foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, workCaption } from "@/lib/memorial";
@@ -13,11 +13,12 @@ const nearestRemembrance = (artists: MemorialArtist[], today: Date) => artists.r
   artist: MemorialArtist;
   daysUntil: number;
   date: Date;
+  years: number;
 } | null>((nearest, artist) => {
   const anniversary = nextAnniversary(artist.death_date, today);
   if (!anniversary) return nearest;
   if (!nearest || anniversary.daysUntil < nearest.daysUntil || (anniversary.daysUntil === nearest.daysUntil && artist.name.localeCompare(nearest.artist.name, "vi") < 0)) {
-    return { artist, daysUntil: anniversary.daysUntil, date: anniversary.date };
+    return { artist, daysUntil: anniversary.daysUntil, date: anniversary.date, years: anniversary.years };
   }
   return nearest;
 }, null);
@@ -47,9 +48,14 @@ export default function MemorialHome() {
     ? new Date(nextRemembrance.date.getFullYear(), nextRemembrance.date.getMonth(), nextRemembrance.date.getDate() - 1)
     : today;
   const heroRemembrance = nearestRemembrance(artists, previewDate);
+  const showRemembrance = !!heroRemembrance && heroRemembrance.daysUntil <= 7;
+  const remembranceToday = heroRemembrance?.daysUntil === 0;
+  const otherRemembrances = showRemembrance
+    ? artists.filter((artist) => artist.id !== heroRemembrance?.artist.id && (nextAnniversary(artist.death_date, previewDate)?.daysUntil ?? 99) <= 7).length
+    : 0;
 
   useEffect(() => {
-    updateMetaTags({ title: "Nhịp cầu tri ân | Đường Nghệ sĩ, Hoa Viên Bình Dương", description: "Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: "Đường Nghệ sĩ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ", description: "Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
     return () => resetMetaTags();
   }, []);
 
@@ -70,16 +76,27 @@ export default function MemorialHome() {
   return <div className="memorial">
     <MemorialHeader />
     {isLoading ? <HomeLoading /> : error ? <main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Chưa tải được trang tưởng niệm</h1><p>Đường truyền có thể đang gián đoạn. Bạn có thể thử tải lại.</p><div className="memorial-retry-actions"><button type="button" className="memorial-button" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Đang tải lại…" : "Thử tải lại"}</button><Link className="memorial-text-link" to="/danh-sach">Xem danh sách nghệ sĩ</Link></div></main> : <main>
-      <section className="memorial-home-hero" aria-label="Tưởng nhớ các nghệ sĩ">
-        {memorialImages.entrance && <img className="memorial-home-hero-image" src={memorialImages.entrance} alt="" fetchPriority="high" />}
-        <div className="memorial-shell memorial-home-hero-inner">
-          <p className="memorial-eyebrow memorial-enter">Đường Nghệ sĩ, Hoa Viên Bình Dương</p>
-          <h1 className="memorial-display"><span className="memorial-enter">Tưởng nhớ những</span>{" "}<span className="memorial-gold-text memorial-enter">nghệ sĩ đã khuất.</span></h1>
-          <p className="memorial-hero-lead memorial-enter">Cùng nhớ về cuộc đời, tác phẩm và dấu ấn của những người nghệ sĩ đang an nghỉ tại đây.</p>
-          <a className="memorial-button memorial-enter" href="#tim-nghe-si">Tìm một nghệ sĩ</a>
-          {heroRemembrance && heroRemembrance.daysUntil <= 7 && <Link className="memorial-hero-remembrance memorial-enter" to={artistHref(heroRemembrance.artist)} aria-label={`${previewRemembrance ? "Bản xem thử. " : ""}${heroRemembrance.daysUntil === 0 ? "Hôm nay là ngày tưởng nhớ" : `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng nhớ`} của ${heroRemembrance.artist.name}. Xem trang tưởng niệm`}>
-            <MemorialPortrait src={heroRemembrance.artist.avatar_url} name={heroRemembrance.artist.name} />
-            <span className="memorial-hero-remembrance-copy"><span className="memorial-hero-remembrance-status">{previewRemembrance && "Bản xem thử · "}{heroRemembrance.daysUntil === 0 ? "Hôm nay là ngày tưởng nhớ" : `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng nhớ`}</span><strong>{heroRemembrance.artist.name}</strong><small>{heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1} · Xem trang tưởng niệm</small></span>
+      <section className="memorial-home-hero" aria-label="Tưởng nhớ các nghệ sĩ" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
+        <div className="memorial-home-hero-photo">
+          {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ sĩ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" fetchPriority="high" />}
+        </div>
+        <div className="memorial-shell memorial-home-hero-body">
+          <h1 className="memorial-display">Tưởng nhớ những <em>nghệ sĩ đã khuất.</em></h1>
+          <p className="memorial-hero-lead">Cùng nhớ về cuộc đời, tác phẩm và dấu ấn của những người nghệ sĩ đang an nghỉ tại đây.</p>
+          <form className="memorial-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); document.getElementById("tim-nghe-si")?.scrollIntoView({ behavior: "smooth" }); }}>
+            <Search size={20} aria-hidden="true" />
+            <input type="search" aria-label="Tìm nghệ sĩ theo tên" placeholder="Tìm tên nghệ sĩ, có dấu hay không dấu" value={search} onChange={(event) => setSearch(event.target.value)} />
+            <button className="memorial-button" type="submit">Tìm</button>
+          </form>
+          {showRemembrance && heroRemembrance && <Link className="memorial-hero-remembrance" to={artistHref(heroRemembrance.artist)}>
+            <MemorialPortrait src={heroRemembrance.artist.avatar_url} name={heroRemembrance.artist.name} loading="eager" />
+            <span className="memorial-hero-remembrance-copy">
+              <span className="memorial-hero-remembrance-status"><Flame size={18} aria-hidden="true" />{previewRemembrance && "Bản xem thử · "}{remembranceToday ? "Hôm nay là ngày tưởng niệm" : `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng niệm`}</span>
+              <strong>{heroRemembrance.artist.name}</strong>
+              <span className="memorial-hero-remembrance-meta">{remembranceToday ? `Tròn ${heroRemembrance.years} năm ngày mất` : `${heroRemembrance.years} năm ngày mất`} · {heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</span>
+              {otherRemembrances > 0 && <span className="memorial-hero-remembrance-others">và {otherRemembrances} nghệ sĩ khác có ngày tưởng niệm trong tuần này</span>}
+              <span className="memorial-hero-remembrance-cta">Tưởng niệm<ArrowRight size={17} aria-hidden="true" /></span>
+            </span>
           </Link>}
         </div>
       </section>
