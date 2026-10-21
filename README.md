@@ -10,6 +10,10 @@ Website tưởng niệm nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình D
 
 Chạy `npm run build` để kiểm tra TypeScript và tạo bản tĩnh trong `dist/`.
 
+## Triển khai từ GitHub
+
+`.env.production` chỉ chứa URL Supabase và khóa **publishable** dùng trong trình duyệt. Tệp này được đưa lên GitHub để các bản dựng từ repository đọc cùng dữ liệu với website hiện tại. Không đưa khóa `service_role` hoặc thông tin quản trị vào tệp này. Nếu đổi dự án hoặc xoay khóa Supabase, cập nhật cả `.env.production` và cấu hình triển khai.
+
 ## Dữ liệu và quản trị
 
 Website này đọc dữ liệu nghệ sĩ, tác phẩm và lời tri ân từ Supabase hiện tại. Phần quản trị vẫn nằm trong Sổ Tang Điện Tử. Chỉ dùng khóa publishable/anon ở trình duyệt; mọi quyền xem và ghi phải tiếp tục được bảo vệ bằng RLS trong Supabase.
