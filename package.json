@@ -1,0 +1,29 @@
+{
+  "name": "nhip-cau-tri-an",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 8082 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 8082 --strictPort"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
+    "@tanstack/react-query": "^5.83.0",
+    "dompurify": "^3.3.1",
+    "lucide-react": "^0.462.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.3.0"
+  }
+}
