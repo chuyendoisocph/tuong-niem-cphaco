@@ -106,8 +106,8 @@
 
 .memorial-home-hero { position: relative; isolation: isolate; }
 .memorial:has(.memorial-home-hero)::after { display: none; }
-.memorial-home-hero-photo { position: relative; height: clamp(360px, 60vh, 640px); overflow: hidden; background: var(--surface); }
-.memorial-home-hero-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 32% 55%; filter: saturate(.9) contrast(1.02); }
+.memorial-home-hero-photo { position: relative; height: max(360px, min(56.25vw, 74svh, 780px)); overflow: hidden; background: var(--surface); }
+.memorial-home-hero-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 30% 45%; }
 .memorial-home-hero-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(253 252 248 / .3) 0%, rgb(253 252 248 / 0) 16%, rgb(253 252 248 / 0) 64%, rgb(253 252 248 / .82) 88%, var(--paper) 100%); }
 .memorial-home-hero-body { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "title remembrance" "lead remembrance" "search remembrance"; align-items: start; column-gap: clamp(2rem, 5vw, 5rem); margin-top: clamp(-6.5rem, -7vw, -3rem); padding-bottom: clamp(3rem, 6vw, 5.5rem); }
 .memorial-home-hero:not([data-remembrance]) .memorial-home-hero-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "lead" "search"; }
@@ -325,8 +325,8 @@
 }
 
 @media (max-width: 700px) {
-  .memorial-home-hero-photo { height: clamp(300px, 46svh, 420px); }
-  .memorial-home-hero-photo img { object-position: 22% 55%; }
+  .memorial-home-hero-photo { height: 64vw; }
+  .memorial-home-hero-photo img { object-position: 16% 45%; }
   .memorial-home-hero-body { margin-top: -2.6rem; padding-bottom: 2.8rem; }
   .memorial-home-hero h1 { font-size: clamp(2.4rem, 10.5vw, 3.2rem); }
   .memorial-hero-remembrance strong { font-size: 1.3rem; }
@@ -401,4 +401,4 @@
 @keyframes memorial-slide-right { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes memorial-draw { from { left: 50%; width: 0; } to { left: 0; width: 100%; } }
 
-@keyframes memorial-settle { from { transform: scale(1.06); filter: saturate(.6) contrast(1.02); } to { transform: scale(1); filter: saturate(.9) contrast(1.02); } }
+@keyframes memorial-settle { from { transform: scale(1.06); filter: saturate(.7); } to { transform: scale(1); filter: saturate(1); } }

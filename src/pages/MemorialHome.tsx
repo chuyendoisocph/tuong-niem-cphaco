@@ -85,7 +85,7 @@ export default function MemorialHome() {
           <p className="memorial-hero-lead">Cùng nhớ về cuộc đời, tác phẩm và dấu ấn của những người nghệ sĩ đang an nghỉ tại đây.</p>
           <form className="memorial-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); document.getElementById("tim-nghe-si")?.scrollIntoView({ behavior: "smooth" }); }}>
             <Search size={20} aria-hidden="true" />
-            <input type="search" aria-label="Tìm nghệ sĩ theo tên" placeholder="Tìm tên nghệ sĩ, có dấu hay không dấu" value={search} onChange={(event) => setSearch(event.target.value)} />
+            <input type="search" aria-label="Tìm nghệ sĩ theo tên" placeholder="Tìm tên nghệ sĩ" value={search} onChange={(event) => setSearch(event.target.value)} />
             <button className="memorial-button" type="submit">Tìm</button>
           </form>
           {showRemembrance && heroRemembrance && <Link className="memorial-hero-remembrance" to={artistHref(heroRemembrance.artist)}>
