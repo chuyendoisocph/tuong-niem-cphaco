@@ -1,6 +1,6 @@
-# Đường Nghệ sĩ · Hoa Viên Bình Dương
+# Đường Nghệ Sỹ · Hoa Viên Bình Dương
 
-Website tưởng niệm nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình Dương. Đây là ứng dụng riêng, tách khỏi giao diện và mã nguồn của Sổ Tang Điện Tử.
+Website tưởng niệm nghệ sĩ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương. Đây là ứng dụng riêng, tách khỏi giao diện và mã nguồn của Sổ Tang Điện Tử.
 
 ## Chạy trên máy
 

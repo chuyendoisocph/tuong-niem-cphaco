@@ -12,7 +12,7 @@ export default function MemorialDirectory() {
   const [profession, setProfession] = useState("Tất cả");
 
   useEffect(() => {
-    updateMetaTags({ title: "Tất cả nghệ sĩ | Đường Nghệ sĩ · Hoa Viên Bình Dương", description: "Danh sách nghệ sĩ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: "Tất cả nghệ sĩ | Đường Nghệ Sỹ · Hoa Viên Bình Dương", description: "Danh sách nghệ sĩ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.", url: window.location.href });
     return () => resetMetaTags();
   }, []);
 
@@ -30,7 +30,7 @@ export default function MemorialDirectory() {
     <MemorialHeader />
     <main className="memorial-shell">
       <div className="memorial-directory-head">
-        <p className="memorial-eyebrow">Đường Nghệ sĩ, Hoa Viên Bình Dương</p>
+        <p className="memorial-eyebrow">Đường Nghệ Sỹ, Hoa Viên Bình Dương</p>
         <h1 className="memorial-display">Tất cả nghệ sĩ</h1>
         <label className="memorial-search-field"><Search size={20} aria-hidden="true" /><input type="search" aria-label="Tìm theo tên" placeholder="Tìm theo tên" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         <div className="memorial-filters" role="group" aria-label="Lọc theo nghề">

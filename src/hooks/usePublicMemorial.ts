@@ -23,7 +23,17 @@ export type MemorialItem = {
   title: string;
   description: string | null;
   year: number | null;
+  url: string | null;
   display_order: number;
+};
+
+export type MemorialQuote = {
+  id: string;
+  profile_id: string;
+  quote: string;
+  speaker: string | null;
+  source: string | null;
+  url: string | null;
 };
 
 export type MemorialPhoto = {
@@ -48,7 +58,7 @@ export type TributeSubmission = Pick<Tribute, "profile_id" | "author_name" | "co
 // The generated Supabase types predate memorial_items, memorial_flowers and the new profile columns.
 const db = supabase as unknown as SupabaseClient;
 const artistColumns = "id, slug, name, tagline, biography, birth_date, death_date, avatar_url, grave_number, maps_url";
-const itemColumns = "id, profile_id, kind, title, description, year, display_order";
+const itemColumns = "id, profile_id, kind, title, description, year, url, display_order";
 const tributeColumns = "id, profile_id, author_name, content, created_at";
 
 function visibleArtist(artist: MemorialArtist): MemorialArtist | null {
@@ -165,6 +175,59 @@ export function useAllWorks() {
         .order("display_order", { ascending: true });
       if (error) throw error;
       return ((data ?? []) as MemorialItem[]).map(visibleItem);
+    },
+  });
+}
+
+// story, source and the 'quote' kind come from supabase/migrations/20261022000000_memorial_stories_quotes.sql.
+// Until that migration is applied these queries fail, so they resolve empty and the home page hides what they feed.
+export function useWorkStories() {
+  const { data: artists } = useArtists();
+  const artistIds = artists?.map((artist) => artist.id) ?? [];
+  return useQuery({
+    queryKey: ["public-memorial", "work-stories", artistIds],
+    enabled: !!artists,
+    retry: false,
+    queryFn: async (): Promise<Map<string, string>> => {
+      if (!artistIds.length) return new Map();
+      const { data, error } = await db.from("memorial_items")
+        .select("id, story")
+        .eq("kind", "work")
+        .in("profile_id", artistIds)
+        .not("story", "is", null);
+      if (error) return new Map();
+      return new Map(((data ?? []) as { id: string; story: string }[])
+        .map((row): [string, string] => [row.id, displayMemorialText(row.story.trim())])
+        .filter(([, story]) => story));
+    },
+  });
+}
+
+export function useArtistQuotes() {
+  const { data: artists } = useArtists();
+  const artistIds = artists?.map((artist) => artist.id) ?? [];
+  return useQuery({
+    queryKey: ["public-memorial", "quotes", artistIds],
+    enabled: !!artists,
+    retry: false,
+    queryFn: async (): Promise<MemorialQuote[]> => {
+      if (!artistIds.length) return [];
+      const { data, error } = await db.from("memorial_items")
+        .select("id, profile_id, title, description, source, url")
+        .eq("kind", "quote")
+        .in("profile_id", artistIds)
+        .order("display_order", { ascending: true });
+      if (error) return [];
+      return ((data ?? []) as { id: string; profile_id: string; title: string; description: string | null; source: string | null; url: string | null }[])
+        .filter((row) => row.title.trim())
+        .map((row) => ({
+          id: row.id,
+          profile_id: row.profile_id,
+          quote: displayMemorialText(row.title.trim()),
+          speaker: row.description ? displayMemorialText(row.description.trim()) : null,
+          source: row.source ? displayMemorialText(row.source.trim()) : null,
+          url: row.url,
+        }));
     },
   });
 }

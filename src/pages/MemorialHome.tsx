@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Flame, Search } from "lucide-react";
-import { MemorialFooter, MemorialHeader, MemorialImage, MemorialPortrait } from "@/components/memorial/MemorialLayout";
-import { useAllWorks, useArtists, useRecentTributes, type MemorialArtist } from "@/hooks/usePublicMemorial";
-import { deathsInMonth, foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, workCaption } from "@/lib/memorial";
+import { ArrowRight, BookOpen, Flame, Play, Search } from "lucide-react";
+import { MemorialFooter, MemorialHeader, MemorialPortrait } from "@/components/memorial/MemorialLayout";
+import { useAllWorks, useArtistQuotes, useArtists, useRecentTributes, useWorkStories, type MemorialArtist } from "@/hooks/usePublicMemorial";
+import { deathsInMonth, foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, revisitVerb, workCaption } from "@/lib/memorial";
 import { memorialImages } from "@/lib/memorialImages";
 import { resetMetaTags, updateMetaTags } from "@/utils/metaTags";
 
 const artistHref = (artist: MemorialArtist) => "/" + (artist.slug || artist.id);
+const pad = (value: number) => String(value).padStart(2, "0");
+const dotDate = (date: Date) => `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+const rotate = <T,>(items: T[], start: number) => [...items.slice(start), ...items.slice(0, start)];
 const dayOfYear = (date: Date) => Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 1)) / 86_400_000);
 const nearestRemembrance = (artists: MemorialArtist[], today: Date) => artists.reduce<{
   artist: MemorialArtist;
@@ -41,7 +44,9 @@ export default function MemorialHome() {
   const [search, setSearch] = useState("");
   const { data: artists = [], isLoading, isFetching, error, refetch } = useArtists();
   const { data: allWorks = [] } = useAllWorks();
-  const { data: recentTributes = [] } = useRecentTributes(2);
+  const { data: recentTributes = [] } = useRecentTributes(3);
+  const { data: workStories = new Map<string, string>() } = useWorkStories();
+  const { data: quotes = [] } = useArtistQuotes();
   const previewRemembrance = import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "anniversary";
   const nextRemembrance = nearestRemembrance(artists, today);
   const previewDate = previewRemembrance && nextRemembrance && nextRemembrance.daysUntil > 0
@@ -55,7 +60,7 @@ export default function MemorialHome() {
     : 0;
 
   useEffect(() => {
-    updateMetaTags({ title: "Đường Nghệ sĩ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ", description: "Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ sĩ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: "Đường Nghệ Sỹ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ", description: "Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.", url: window.location.href });
     return () => resetMetaTags();
   }, []);
 
@@ -66,19 +71,27 @@ export default function MemorialHome() {
     ? artists.filter((artist) => foldVietnamese(artist.name + " " + (artist.tagline ?? "")).includes(normalizedSearch)).slice(0, 8)
     : [];
   const artistsById = new Map(artists.map((artist) => [artist.id, artist]));
-  const worksByArtist = new Map<string, typeof allWorks[number]>();
-  for (const work of allWorks) if (!worksByArtist.has(work.profile_id)) worksByArtist.set(work.profile_id, work);
-  const workHighlights = [...worksByArtist.values()].filter((work) => artistsById.has(work.profile_id));
-  const showWorks = workHighlights.length > 0;
-  const startWork = workHighlights.length ? dayOfYear(today) % workHighlights.length : 0;
-  const rotatingWorks = [...workHighlights.slice(startWork), ...workHighlights.slice(0, startWork)].slice(0, 4);
+  const works = allWorks.filter((work) => artistsById.has(work.profile_id));
+  const firstWorks = works.filter((work, index) => works.findIndex((other) => other.profile_id === work.profile_id) === index);
+  // The week of an anniversary features that artist; otherwise works with a story or listen link come first.
+  const remembranceWork = showRemembrance && heroRemembrance ? works.find((work) => work.profile_id === heroRemembrance.artist.id) : undefined;
+  const tellableWorks = works.filter((work) => workStories.has(work.id) || publicHttpUrl(work.url));
+  const rotationPool = tellableWorks.length ? tellableWorks : firstWorks;
+  const featuredWork = remembranceWork ?? (rotationPool.length ? rotationPool[dayOfYear(today) % rotationPool.length] : undefined);
+  const featuredArtist = featuredWork ? artistsById.get(featuredWork.profile_id) : undefined;
+  const featuredStory = featuredWork ? workStories.get(featuredWork.id) : undefined;
+  const featuredUrl = publicHttpUrl(featuredWork?.url);
+  const featuredVerb = featuredWork && featuredArtist ? revisitVerb(featuredWork, featuredArtist.name) : "Xem lại";
+  const otherWorks = firstWorks.filter((work) => work.profile_id !== featuredWork?.profile_id);
+  const moreWorks = rotate(otherWorks, otherWorks.length ? dayOfYear(today) % otherWorks.length : 0).slice(0, 3);
+  const shownQuotes = rotate(quotes, quotes.length ? dayOfYear(today) % quotes.length : 0).slice(0, 2);
 
   return <div className="memorial">
     <MemorialHeader />
     {isLoading ? <HomeLoading /> : error ? <main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Chưa tải được trang tưởng niệm</h1><p>Đường truyền có thể đang gián đoạn. Bạn có thể thử tải lại.</p><div className="memorial-retry-actions"><button type="button" className="memorial-button" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Đang tải lại…" : "Thử tải lại"}</button><Link className="memorial-text-link" to="/danh-sach">Xem danh sách nghệ sĩ</Link></div></main> : <main>
       <section className="memorial-home-hero" aria-label="Tưởng nhớ các nghệ sĩ" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
         <div className="memorial-home-hero-photo">
-          {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ sĩ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" fetchPriority="high" />}
+          {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ Sỹ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" fetchPriority="high" />}
         </div>
         <div className="memorial-shell memorial-home-hero-body">
           <h1 className="memorial-display">Tưởng nhớ những <em>nghệ sĩ đã khuất.</em></h1>
@@ -139,26 +152,63 @@ export default function MemorialHome() {
           {matches.map((artist) => <Link key={artist.id} className="memorial-result memorial-name-link" to={artistHref(artist)}><MemorialPortrait src={artist.avatar_url} name={artist.name} /><span><strong>{artist.name}</strong><small>{formatLifespan(artist.birth_date, artist.death_date)}</small></span></Link>)}
         </div> : <p className="memorial-section-empty">Không có nghệ sĩ nào khớp với “{search.trim()}”.</p> : <>
           <div className="memorial-face-grid memorial-stagger">{artists.slice(0, 8).map((artist) => <Link key={artist.id} to={artistHref(artist)} className="memorial-name-link" aria-label={artist.name + ", " + formatLifespan(artist.birth_date, artist.death_date)}><MemorialPortrait src={artist.avatar_url} name={artist.name} /><strong>{artist.name}</strong><small>{formatLifespan(artist.birth_date, artist.death_date)}</small></Link>)}</div>
-          <p className="memorial-face-caption">Giới thiệu {Math.min(artists.length, 8)} trong {artists.length} nghệ sĩ đang an nghỉ tại Đường Nghệ sĩ.</p>
+          <p className="memorial-face-caption">Giới thiệu {Math.min(artists.length, 8)} trong {artists.length} nghệ sĩ đang an nghỉ tại Đường Nghệ Sỹ.</p>
         </>}
       </section>
 
-      <section className="memorial-bridge" aria-label="Nhịp cầu tri ân">
-        <div className="memorial-shell memorial-bridge-inner">
-          <div className="memorial-bridge-column memorial-from-left">
-            {showWorks ? <><h2 className="memorial-section-title">Những gì họ để lại</h2><div className="memorial-work-list">{rotatingWorks.map((work) => {
+      {featuredWork && featuredArtist && <section className="memorial-listen-band" aria-labelledby="listen-title">
+        <div className="memorial-shell memorial-section">
+          <div className="memorial-section-head"><h2 id="listen-title" className="memorial-section-title">Hôm nay nhớ lại</h2></div>
+          <div className="memorial-listen">
+            <Link className="memorial-listen-portrait" to={artistHref(featuredArtist)} tabIndex={-1} aria-hidden="true"><MemorialPortrait key={featuredArtist.id} src={featuredArtist.avatar_url} name={featuredArtist.name} /></Link>
+            <div className="memorial-listen-copy">
+              {remembranceWork && heroRemembrance && <p className="memorial-listen-context"><Flame size={17} aria-hidden="true" />Tuần tưởng niệm {featuredArtist.name} · {heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</p>}
+              <h3>{featuredWork.title}</h3>
+              <p className="memorial-listen-meta">{[workCaption(featuredWork), featuredArtist.name].filter(Boolean).join(" · ")}</p>
+              {featuredStory && <p className="memorial-listen-story">{featuredStory}</p>}
+              <div className="memorial-listen-actions">
+                {featuredUrl && <a className="memorial-button" href={featuredUrl} target="_blank" rel="noopener noreferrer">{featuredVerb === "Đọc lại" ? <BookOpen size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}{featuredVerb}</a>}
+                <Link className="memorial-text-link" to={artistHref(featuredArtist)}>Xem trang tưởng niệm<ArrowRight size={16} aria-hidden="true" /></Link>
+              </div>
+            </div>
+          </div>
+          {moreWorks.length > 0 && <div className="memorial-listen-more">
+            <h3>Những tác phẩm khác</h3>
+            <ul>{moreWorks.map((work) => {
               const artist = artistsById.get(work.profile_id);
-              return artist && <Link key={work.id} className="memorial-name-link" to={artistHref(artist)}><strong>{work.title}</strong><small>{work.description || workCaption(work)}, {artist.name}</small></Link>;
-            })}</div></> : <><h2 className="memorial-section-title">Nơi họ an nghỉ</h2><MemorialImage src={memorialImages.marker} alt="Biển chỉ dẫn Đường Nghệ sĩ giữa vườn hoa" position="42% 55%" /><p className="memorial-image-caption">Đường Nghệ sĩ, Hoa Viên Bình Dương</p></>}
-          </div>
-          <div className="memorial-bridge-column memorial-from-right">
-            <h2 className="memorial-section-title">Những lời gửi lại</h2>
-            {recentTributes.length ? recentTributes.map((tribute) => <figure key={tribute.id} className="memorial-tribute-snippet"><blockquote>“{tribute.content}”</blockquote><figcaption>{tribute.author_name}, gửi {parseName(tribute.artist.name).shortName}</figcaption></figure>) : <p className="memorial-prose">Chưa có lời tri ân nào. Bạn có thể bắt đầu từ trang của một nghệ sĩ.</p>}
-            <div className="memorial-gold-rule" />
-            <h3>Bạn đang nhớ đến ai?</h3>
-            <p className="memorial-prose">Hãy chọn nghệ sĩ để chia sẻ một kỷ niệm hoặc dâng một đóa hoa trên trang của họ.</p>
-            <Link className="memorial-button memorial-button-outline" to="/danh-sach">Tìm nghệ sĩ</Link>
-          </div>
+              return artist && <li key={work.id}><Link className="memorial-name-link" to={artistHref(artist)}><strong>{work.title}</strong><small>{artist.name}</small></Link></li>;
+            })}</ul>
+          </div>}
+        </div>
+      </section>}
+
+      <section className="memorial-shell memorial-section memorial-voices" aria-labelledby="voices-title">
+        {shownQuotes.length > 0 && <>
+          <div className="memorial-section-head"><h2 id="voices-title" className="memorial-section-title">Lời người ở lại</h2></div>
+          <div className="memorial-quotes">{shownQuotes.map((quote) => {
+            const artist = artistsById.get(quote.profile_id);
+            const sourceUrl = publicHttpUrl(quote.url);
+            return <figure key={quote.id}>
+              <blockquote>“{quote.quote}”</blockquote>
+              <figcaption>
+                <span>{[quote.speaker, artist && `về ${artist.name}`].filter(Boolean).join(", ")}</span>
+                {quote.source && (sourceUrl ? <a href={sourceUrl} target="_blank" rel="noopener noreferrer">{quote.source}</a> : <cite>{quote.source}</cite>)}
+              </figcaption>
+            </figure>;
+          })}</div>
+        </>}
+        <div className="memorial-visitor-notes">
+          {shownQuotes.length > 0 ? <h3>Những lời tưởng nhớ</h3> : <div className="memorial-section-head"><h2 id="voices-title" className="memorial-section-title">Những lời tưởng nhớ</h2></div>}
+          {recentTributes.length > 0 && <div className="memorial-visitor-list">{recentTributes.map((tribute) => <figure key={tribute.id}>
+            <blockquote>“{tribute.content}”</blockquote>
+            <figcaption>{tribute.author_name} · gửi {parseName(tribute.artist.name).shortName}{tribute.created_at ? " · " + dotDate(new Date(tribute.created_at)) : ""}</figcaption>
+          </figure>)}</div>}
+          {showRemembrance && heroRemembrance
+            ? <Link className="memorial-invite" to={artistHref(heroRemembrance.artist) + "#gui-loi"}>
+              <span>{remembranceToday ? "Hôm nay" : `Ngày ${heroRemembrance.date.getDate()}/${heroRemembrance.date.getMonth() + 1}`} tròn {heroRemembrance.years} năm {heroRemembrance.artist.name} rời xa.</span>
+              <strong>Gửi một lời tưởng nhớ<ArrowRight size={17} aria-hidden="true" /></strong>
+            </Link>
+            : <Link className="memorial-invite" to="/danh-sach"><span>{recentTributes.length ? "Bạn cũng có thể gửi một lời." : "Chưa có lời tưởng nhớ nào."}</span><strong>Chọn một nghệ sĩ để gửi lời<ArrowRight size={17} aria-hidden="true" /></strong></Link>}
         </div>
       </section>
     </main>}

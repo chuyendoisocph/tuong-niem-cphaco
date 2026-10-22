@@ -173,6 +173,20 @@ export function workCaption(work: MemorialWork): string {
   return [description, work.year === null ? "" : String(work.year)].filter(Boolean).join(", ");
 }
 
+export type RevisitVerb = "Nghe lại" | "Xem lại" | "Đọc lại";
+
+// How a visitor returns to a work: a song is heard, a play or role is watched, a poem or book is read.
+export function revisitVerb(work: MemorialWork, artistName: string): RevisitVerb {
+  const kind = foldVietnamese(work.description ?? "");
+  if (/\b(ca khuc|bai hat|nhac|album)\b/.test(kind)) return "Nghe lại";
+  if (/\b(tho|tap tho|truyen|tieu thuyet|but ky|tuy but|sach)\b/.test(kind)) return "Đọc lại";
+  if (isRole(work) || /\b(cai luong|kich|tuong|phim|vai)\b/.test(kind)) return "Xem lại";
+  const profession = parseName(artistName).profession;
+  if (profession === "Nhạc sĩ" || profession === "Ca sĩ") return "Nghe lại";
+  if (profession === "Nhà thơ" || profession === "Nhà văn" || profession === "Ký giả") return "Đọc lại";
+  return "Xem lại";
+}
+
 export function substantiveMilestoneCount(items: MemorialMilestone[]): number {
   return items.filter((item) => {
     if (item.kind !== "milestone") return false;
@@ -200,6 +214,16 @@ export function gratitudeReason(name: string, works: MemorialWork[] = []): strin
   if (first) return isRole(first) ? `vì vai “${first.title.trim()}”` : `vì “${first.title.trim()}”`;
   const profession = parseName(name).profession;
   return (profession && REASON_BY_PROFESSION[profession]) || "vì một đời gắn bó với nghệ thuật";
+}
+
+export function publicHttpUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 export function foldVietnamese(value: string): string {

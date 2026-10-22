@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { MemorialFooter, MemorialHeader, MemorialPage, MemorialPortrait } from "@/components/memorial/MemorialLayout";
 import { TributeForm } from "@/components/memorial/TributeForm";
 import { useArtist, useArtistPhotos, useArtists, useFlowerCount, useMemorialItems, useOfferFlower, useTributes, type MemorialArtist } from "@/hooks/usePublicMemorial";
-import { foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, worksHeading } from "@/lib/memorial";
+import { foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, worksHeading } from "@/lib/memorial";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { resetMetaTags, updateMetaTags } from "@/utils/metaTags";
 
@@ -14,16 +14,6 @@ const TRIBUTE_PREVIEW = 3;
 const LONG_BIOGRAPHY = 700;
 const pad = (value: number) => String(value).padStart(2, "0");
 const dotDate = (date: Date) => `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
-
-function publicHttpUrl(value: string | null): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
-  } catch {
-    return null;
-  }
-}
 
 function calendarText(value: string): string {
   return value.replace(/[\\;,]/g, (char) => "\\" + char).replace(/\n/g, "\\n");
@@ -82,8 +72,8 @@ export default function MemorialArtist() {
   useEffect(() => {
     if (!artist) return;
     updateMetaTags({
-      title: artist.name + " | Đường Nghệ sĩ · Hoa Viên Bình Dương",
-      description: "Nhớ về " + artist.name + " tại Đường Nghệ sĩ, Hoa Viên Bình Dương.",
+      title: artist.name + " | Đường Nghệ Sỹ · Hoa Viên Bình Dương",
+      description: "Nhớ về " + artist.name + " tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.",
       image: artist.avatar_url,
       url: window.location.href,
     });
@@ -92,7 +82,7 @@ export default function MemorialArtist() {
 
   useEffect(() => {
     if (!isLoading && !error && !artist) {
-      document.title = "Không tìm thấy trang này. | Đường Nghệ sĩ · Hoa Viên Bình Dương";
+      document.title = "Không tìm thấy trang này. | Đường Nghệ Sỹ · Hoa Viên Bình Dương";
     }
   }, [artist, error, isLoading]);
 
@@ -116,7 +106,7 @@ export default function MemorialArtist() {
 
   if (isLoading) return <MemorialPage><main className="memorial-shell memorial-not-found" aria-label="Đang tải"><div className="memorial-skeleton" style={{ width: "55%", height: 80 }} /></main></MemorialPage>;
   if (error) return <MemorialPage><main className="memorial-shell memorial-not-found"><p>Không tải được trang. Vui lòng thử lại sau.</p></main></MemorialPage>;
-  if (!artist) return <MemorialPage><main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Không tìm thấy trang này.</h1><Link className="memorial-text-link" to="/">Về trang chủ Đường Nghệ sĩ</Link></main></MemorialPage>;
+  if (!artist) return <MemorialPage><main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Không tìm thấy trang này.</h1><Link className="memorial-text-link" to="/">Về trang chủ Đường Nghệ Sỹ</Link></main></MemorialPage>;
 
   const { honorific, profession, shortName } = parseName(artist.name);
   const works = items.filter((item) => item.kind === "work" && foldVietnamese(item.title) !== foldVietnamese(artist.tagline ?? ""));
@@ -185,7 +175,7 @@ export default function MemorialArtist() {
         <div className="memorial-grave">
           <div>
             <h2 id="grave-title" className="memorial-section-title">Nơi an nghỉ</h2>
-            <p className="memorial-grave-place">Đường Nghệ sĩ, Hoa Viên Nghĩa trang Bình Dương</p>
+            <p className="memorial-grave-place">Đường Nghệ Sỹ, Hoa Viên Nghĩa trang Bình Dương</p>
             {artist.grave_number && <dl className="memorial-grave-facts"><div><dt>Số mộ</dt><dd>{artist.grave_number}</dd></div></dl>}
             {mapUrl && <a className="memorial-text-link" href={mapUrl} target="_blank" rel="noopener noreferrer"><MapPin size={17} aria-hidden="true" />Xem vị trí mộ trên bản đồ<ArrowRight size={16} aria-hidden="true" /></a>}
           </div>
@@ -250,7 +240,7 @@ export default function MemorialArtist() {
       {related.length > 0 && <section className="memorial-shell memorial-section" aria-labelledby="related-title">
         <div className="memorial-section-head"><h2 id="related-title" className="memorial-section-title">Cùng tưởng nhớ những người nghệ sĩ</h2></div>
         <div className="memorial-related-grid">{related.map((other) => <Link key={other.id} className="memorial-name-link" to={artistHref(other)}><MemorialPortrait src={other.avatar_url} name={other.name} /><h3>{other.name}</h3><p>{formatLifespan(other.birth_date, other.death_date)}</p></Link>)}</div>
-        <Link className="memorial-text-link memorial-related-more" to="/danh-sach">Khám phá Đường Nghệ sĩ<ArrowRight size={16} aria-hidden="true" /></Link>
+        <Link className="memorial-text-link memorial-related-more" to="/danh-sach">Khám phá Đường Nghệ Sỹ<ArrowRight size={16} aria-hidden="true" /></Link>
       </section>}
     </main>
     <MemorialFooter><p className="memorial-prose">Tiểu sử và hình ảnh do CPHACO tổng hợp. Nếu bạn phát hiện sai sót hoặc giữ tư liệu về nghệ sĩ, xin liên hệ để chúng tôi đính chính và ghi nguồn.</p></MemorialFooter>

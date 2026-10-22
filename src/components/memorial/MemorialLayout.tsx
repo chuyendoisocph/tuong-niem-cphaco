@@ -7,7 +7,7 @@ export function MemorialHeader() {
   return <header className="memorial-header memorial-shell">
     <Link className="memorial-brand" to="/">
       <img src="/cphaco-logo.png" alt="Logo CPHACO" width="60" height="60" />
-      <span className="memorial-brand-text"><span className="memorial-brand-name">Đường Nghệ sĩ</span><span className="memorial-brand-sub">Hoa Viên Bình Dương</span></span>
+      <span className="memorial-brand-text"><span className="memorial-brand-name">Đường Nghệ Sỹ</span><span className="memorial-brand-sub">Hoa Viên Bình Dương</span></span>
     </Link>
     <Link className="memorial-header-link" to="/danh-sach">Tất cả nghệ sĩ</Link>
   </header>;
@@ -47,7 +47,7 @@ export function MemorialImage({ src, alt, className = "", position }: {
 }) {
   return <div className={`memorial-place-image ${className}`}>
     {src ? <img src={src} alt={alt} style={position ? { objectPosition: position } : undefined} /> :
-      <span className="memorial-image-fallback">Đường Nghệ sĩ<br />Hoa Viên Bình Dương</span>}
+      <span className="memorial-image-fallback">Đường Nghệ Sỹ<br />Hoa Viên Bình Dương</span>}
   </div>;
 }
 
