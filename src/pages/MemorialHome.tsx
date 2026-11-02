@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Flame, Play, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, BookOpen, Flame, Map as MapIcon, Play, Search } from "lucide-react";
 import { MemorialFooter, MemorialHeader, MemorialPortrait } from "@/components/memorial/MemorialLayout";
-import { useAllWorks, useArtistQuotes, useArtists, useRecentTributes, useWorkStories, type MemorialArtist } from "@/hooks/usePublicMemorial";
-import { deathsInMonth, foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, revisitVerb, workCaption } from "@/lib/memorial";
+import { WorkExcerpt, YouTubePlayer } from "@/components/memorial/WorkMedia";
+import { useAllWorks, useArtistQuotes, useArtists, useRecentTributes, useWorkStories, type MemorialArtist, type MemorialItem } from "@/hooks/usePublicMemorial";
+import { ART_FORMS, artFormOf, deathsInMonth, formatLifespan, innerQuotes, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, revisitVerb, workCaption, youtubeId } from "@/lib/memorial";
 import { memorialImages } from "@/lib/memorialImages";
+import { GRAVE_MAP_URL, SITE_DESCRIPTION, SITE_TITLE, VISIT_INFO } from "@/lib/site";
 import { resetMetaTags, updateMetaTags } from "@/utils/metaTags";
 
 const artistHref = (artist: MemorialArtist) => "/" + (artist.slug || artist.id);
@@ -42,6 +44,7 @@ export default function MemorialHome() {
   const currentMonth = today.getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
   const { data: artists = [], isLoading, isFetching, error, refetch } = useArtists();
   const { data: allWorks = [] } = useAllWorks();
   const { data: recentTributes = [] } = useRecentTributes(3);
@@ -60,45 +63,57 @@ export default function MemorialHome() {
     : 0;
 
   useEffect(() => {
-    updateMetaTags({ title: "Đường Nghệ Sỹ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ", description: "Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: SITE_TITLE, description: SITE_DESCRIPTION, url: window.location.href });
     return () => resetMetaTags();
   }, []);
 
   const selectedArtists = deathsInMonth(artists, selectedMonth);
-
-  const normalizedSearch = foldVietnamese(search.trim());
-  const matches = normalizedSearch
-    ? artists.filter((artist) => foldVietnamese(artist.name + " " + (artist.tagline ?? "")).includes(normalizedSearch)).slice(0, 8)
+  // A thin current month is topped up with the next remembrance days, so the row never stands nearly empty.
+  const comingUp = selectedMonth === currentMonth && selectedArtists.length < 4
+    ? artists.filter((artist) => !selectedArtists.includes(artist))
+      .flatMap((artist) => {
+        const anniversary = nextAnniversary(artist.death_date, today);
+        return anniversary ? [{ artist, date: anniversary.date, daysUntil: anniversary.daysUntil }] : [];
+      })
+      .sort((left, right) => left.daysUntil - right.daysUntil)
+      .slice(0, 4 - selectedArtists.length)
     : [];
+  // The wall only shows faces and changes with the day; CSS trims it to whole rows at each width.
+  const withPortraits = artists.filter((artist) => artist.avatar_url);
+  const artForms = ART_FORMS.map((form) => ({ form, count: artists.filter((artist) => artFormOf(artist) === form).length })).filter(({ count }) => count > 0);
+  const visitFacts = [["Địa chỉ", VISIT_INFO.address], ["Điện thoại", VISIT_INFO.phone], ["Giờ mở cửa", VISIT_INFO.hours]].filter(([, value]) => value.trim());
+  const wallArtists = rotate(withPortraits, withPortraits.length ? dayOfYear(today) % withPortraits.length : 0).slice(0, 15);
+
   const artistsById = new Map(artists.map((artist) => [artist.id, artist]));
   const works = allWorks.filter((work) => artistsById.has(work.profile_id));
   const firstWorks = works.filter((work, index) => works.findIndex((other) => other.profile_id === work.profile_id) === index);
   // The week of an anniversary features that artist; otherwise works with a story or listen link come first.
-  const remembranceWork = showRemembrance && heroRemembrance ? works.find((work) => work.profile_id === heroRemembrance.artist.id) : undefined;
-  const tellableWorks = works.filter((work) => workStories.has(work.id) || publicHttpUrl(work.url));
+  const tellable = (work: MemorialItem) => workStories.has(work.id) || !!publicHttpUrl(work.url) || !!work.excerpt;
+  const remembranceWorks = showRemembrance && heroRemembrance ? works.filter((work) => work.profile_id === heroRemembrance.artist.id) : [];
+  const remembranceWork = remembranceWorks.find(tellable) ?? remembranceWorks[0];
+  const tellableWorks = works.filter(tellable);
   const rotationPool = tellableWorks.length ? tellableWorks : firstWorks;
   const featuredWork = remembranceWork ?? (rotationPool.length ? rotationPool[dayOfYear(today) % rotationPool.length] : undefined);
   const featuredArtist = featuredWork ? artistsById.get(featuredWork.profile_id) : undefined;
   const featuredStory = featuredWork ? workStories.get(featuredWork.id) : undefined;
-  const featuredUrl = publicHttpUrl(featuredWork?.url);
+  const featuredVideo = youtubeId(featuredWork?.url);
+  const featuredUrl = featuredVideo ? null : publicHttpUrl(featuredWork?.url);
   const featuredVerb = featuredWork && featuredArtist ? revisitVerb(featuredWork, featuredArtist.name) : "Xem lại";
-  const otherWorks = firstWorks.filter((work) => work.profile_id !== featuredWork?.profile_id);
-  const moreWorks = rotate(otherWorks, otherWorks.length ? dayOfYear(today) % otherWorks.length : 0).slice(0, 3);
   const shownQuotes = rotate(quotes, quotes.length ? dayOfYear(today) % quotes.length : 0).slice(0, 2);
 
   return <div className="memorial">
     <MemorialHeader />
-    {isLoading ? <HomeLoading /> : error ? <main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Chưa tải được trang tưởng niệm</h1><p>Đường truyền có thể đang gián đoạn. Bạn có thể thử tải lại.</p><div className="memorial-retry-actions"><button type="button" className="memorial-button" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Đang tải lại…" : "Thử tải lại"}</button><Link className="memorial-text-link" to="/danh-sach">Xem danh sách nghệ sĩ</Link></div></main> : <main>
-      <section className="memorial-home-hero" aria-label="Tưởng nhớ các nghệ sĩ" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
+    {isLoading ? <HomeLoading /> : error ? <main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Chưa tải được trang tưởng niệm</h1><p>Đường truyền có thể đang gián đoạn. Bạn có thể thử tải lại.</p><div className="memorial-retry-actions"><button type="button" className="memorial-button" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Đang tải lại…" : "Thử tải lại"}</button><Link className="memorial-text-link" to="/danh-sach">Xem danh sách</Link></div></main> : <main>
+      <section className="memorial-home-hero" aria-label="Tưởng nhớ những người đã khuất" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
         <div className="memorial-home-hero-photo">
           {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ Sỹ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" fetchPriority="high" />}
         </div>
         <div className="memorial-shell memorial-home-hero-body">
-          <h1 className="memorial-display">Tưởng nhớ những <em>nghệ sĩ đã khuất.</em></h1>
-          <p className="memorial-hero-lead">Cùng nhớ về cuộc đời, tác phẩm và dấu ấn của những người nghệ sĩ đang an nghỉ tại đây.</p>
-          <form className="memorial-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); document.getElementById("tim-nghe-si")?.scrollIntoView({ behavior: "smooth" }); }}>
+          <h1 className="memorial-display">Tưởng nhớ những người <em>đã để lại dấu ấn.</em></h1>
+          <p className="memorial-hero-lead">Cùng nhớ về cuộc đời và sự nghiệp của các nghệ sỹ và danh nhân đang an nghỉ tại Hoa Viên Bình Dương.</p>
+          <form className="memorial-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); navigate(search.trim() ? `/tra-cuu?q=${encodeURIComponent(search.trim())}` : "/tra-cuu"); }}>
             <Search size={20} aria-hidden="true" />
-            <input type="search" aria-label="Tìm nghệ sĩ theo tên" placeholder="Tìm tên nghệ sĩ" value={search} onChange={(event) => setSearch(event.target.value)} />
+            <input type="search" aria-label="Tìm theo tên" placeholder="Tìm một tên" value={search} onChange={(event) => setSearch(event.target.value)} />
             <button className="memorial-button" type="submit">Tìm</button>
           </form>
           {showRemembrance && heroRemembrance && <Link className="memorial-hero-remembrance" to={artistHref(heroRemembrance.artist)}>
@@ -107,29 +122,29 @@ export default function MemorialHome() {
               <span className="memorial-hero-remembrance-status"><Flame size={18} aria-hidden="true" />{previewRemembrance && "Bản xem thử · "}{remembranceToday ? "Hôm nay là ngày tưởng niệm" : `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng niệm`}</span>
               <strong>{heroRemembrance.artist.name}</strong>
               <span className="memorial-hero-remembrance-meta">{remembranceToday ? `Tròn ${heroRemembrance.years} năm ngày mất` : `${heroRemembrance.years} năm ngày mất`} · {heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</span>
-              {otherRemembrances > 0 && <span className="memorial-hero-remembrance-others">và {otherRemembrances} nghệ sĩ khác có ngày tưởng niệm trong tuần này</span>}
+              {otherRemembrances > 0 && <span className="memorial-hero-remembrance-others">và {otherRemembrances} người khác có ngày tưởng niệm trong tuần này</span>}
               <span className="memorial-hero-remembrance-cta">Tưởng niệm<ArrowRight size={17} aria-hidden="true" /></span>
             </span>
           </Link>}
         </div>
       </section>
 
-      <section className="memorial-shell memorial-section memorial-reveal" aria-labelledby="month-title">
-        <div className="memorial-section-head"><h2 id="month-title" className="memorial-section-title">Tháng {selectedMonth}</h2><p>{selectedArtists.length ? selectedArtists.length + " nghệ sĩ có ngày tưởng nhớ trong tháng" : "Chưa có ngày tưởng nhớ trong danh sách"}</p></div>
+      <section className="memorial-shell memorial-section memorial-month-section memorial-reveal" aria-labelledby="month-title">
+        <div className="memorial-month-head"><h2 id="month-title" className="memorial-section-title">Tưởng nhớ trong tháng {selectedMonth}</h2><p>{selectedArtists.length ? selectedArtists.length + " người có ngày tưởng nhớ trong tháng" : "Chưa có ngày tưởng nhớ trong danh sách"}</p></div>
         <label className="memorial-month-select">Chọn tháng tưởng nhớ<select value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))}>{Array.from({ length: 12 }, (_, index) => {
           const month = index + 1;
-          return <option key={month} value={month}>Tháng {month} · {deathsInMonth(artists, month).length} nghệ sĩ</option>;
+          return <option key={month} value={month}>Tháng {month} · {deathsInMonth(artists, month).length} người</option>;
         })}</select></label>
         <div className="memorial-months" role="group" aria-label="Chọn tháng">
           {Array.from({ length: 12 }, (_, index) => {
             const month = index + 1;
             const count = deathsInMonth(artists, month).length;
-            return <button key={month} type="button" className="memorial-month" aria-pressed={selectedMonth === month} data-current={month === currentMonth} onClick={() => setSelectedMonth(month)} aria-label={"Tháng " + month + ", " + count + " nghệ sĩ có ngày tưởng nhớ"}>
-              <strong>{month}</strong><small data-empty={count === 0}>{count} nghệ sĩ</small>
+            return <button key={month} type="button" className="memorial-month" aria-pressed={selectedMonth === month} data-current={month === currentMonth} data-empty={count === 0} onClick={() => setSelectedMonth(month)} aria-label={"Tháng " + month + ", " + count + " người có ngày tưởng nhớ"}>
+              <strong>{month}</strong>
             </button>;
           })}
         </div>
-        {selectedArtists.length ? <div className="memorial-artist-grid memorial-stagger" data-many={selectedArtists.length > 4}>
+        {selectedArtists.length || comingUp.length ? <div className="memorial-artist-grid memorial-stagger" data-many={selectedArtists.length + comingUp.length > 4}>
           {selectedArtists.map((artist) => {
             const day = parseLooseDate(artist.death_date)?.day ?? 0;
             const isPast = selectedMonth === currentMonth && day < today.getDate();
@@ -141,27 +156,19 @@ export default function MemorialHome() {
               <div className="memorial-artist-card-meta"><span className="memorial-artist-card-day">{String(day).padStart(2, "0")}</span><div><h3>{artist.name}</h3><p>{formatLifespan(artist.birth_date, artist.death_date)}</p>{isToday && <span className="memorial-card-flag">Ngày tưởng nhớ hôm nay</span>}{isUpcoming && <span className="memorial-card-flag">Sắp đến ngày tưởng nhớ</span>}</div></div>
             </Link>;
           })}
-        </div> : <p className="memorial-section-empty">Tháng {selectedMonth} chưa có nghệ sĩ nào có ngày tưởng nhớ trong danh sách. Bạn có thể chọn tháng khác hoặc tìm nghệ sĩ ở bên dưới.</p>}
-      </section>
-
-      <section id="tim-nghe-si" className="memorial-shell memorial-section memorial-reveal" aria-labelledby="search-title">
-        <div className="memorial-section-head"><h2 id="search-title" className="memorial-section-title">Tìm một nghệ sĩ</h2><Link className="memorial-text-link" to="/danh-sach">Xem danh sách đầy đủ</Link></div>
-        <label className="memorial-search-field"><Search aria-hidden="true" size={20} /><input type="search" aria-label="Tìm nghệ sĩ theo tên" placeholder="Gõ tên nghệ sĩ, có dấu hay không dấu" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-        <p className="sr-only" role="status">{normalizedSearch ? `${matches.length} kết quả phù hợp` : `Đang giới thiệu ${Math.min(artists.length, 8)} trong ${artists.length} nghệ sĩ`}</p>
-        {normalizedSearch ? matches.length ? <div className="memorial-results">
-          {matches.map((artist) => <Link key={artist.id} className="memorial-result memorial-name-link" to={artistHref(artist)}><MemorialPortrait src={artist.avatar_url} name={artist.name} /><span><strong>{artist.name}</strong><small>{formatLifespan(artist.birth_date, artist.death_date)}</small></span></Link>)}
-        </div> : <p className="memorial-section-empty">Không có nghệ sĩ nào khớp với “{search.trim()}”.</p> : <>
-          <div className="memorial-face-grid memorial-stagger">{artists.slice(0, 8).map((artist) => <Link key={artist.id} to={artistHref(artist)} className="memorial-name-link" aria-label={artist.name + ", " + formatLifespan(artist.birth_date, artist.death_date)}><MemorialPortrait src={artist.avatar_url} name={artist.name} /><strong>{artist.name}</strong><small>{formatLifespan(artist.birth_date, artist.death_date)}</small></Link>)}</div>
-          <p className="memorial-face-caption">Giới thiệu {Math.min(artists.length, 8)} trong {artists.length} nghệ sĩ đang an nghỉ tại Đường Nghệ Sỹ.</p>
-        </>}
+          {comingUp.map(({ artist, date }) => <Link key={artist.id} to={artistHref(artist)} className="memorial-artist-card memorial-name-link">
+            <MemorialPortrait src={artist.avatar_url} name={artist.name} />
+            <div className="memorial-artist-card-meta"><span className="memorial-artist-card-day">{pad(date.getDate())}</span><div><h3>{artist.name}</h3><p>Tháng {date.getMonth() + 1}</p></div></div>
+          </Link>)}
+        </div> : <p className="memorial-section-empty">Tháng {selectedMonth} chưa có ai có ngày tưởng nhớ trong danh sách. Bạn có thể chọn tháng khác hoặc tìm theo tên ở đầu trang.</p>}
       </section>
 
       {featuredWork && featuredArtist && <section className="memorial-listen-band" aria-labelledby="listen-title">
         <div className="memorial-shell memorial-section">
-          <div className="memorial-section-head"><h2 id="listen-title" className="memorial-section-title">Hôm nay nhớ lại</h2></div>
-          <div className="memorial-listen">
-            <Link className="memorial-listen-portrait" to={artistHref(featuredArtist)} tabIndex={-1} aria-hidden="true"><MemorialPortrait key={featuredArtist.id} src={featuredArtist.avatar_url} name={featuredArtist.name} /></Link>
+          <h2 id="listen-title" className="memorial-section-title">Hôm nay nhớ lại</h2>
+          <div className="memorial-listen" data-media={!!featuredVideo || !!featuredWork.excerpt}>
             <div className="memorial-listen-copy">
+              <Link className="memorial-listen-portrait" to={artistHref(featuredArtist)} tabIndex={-1} aria-hidden="true"><MemorialPortrait key={featuredArtist.id} src={featuredArtist.avatar_url} name={featuredArtist.name} /></Link>
               {remembranceWork && heroRemembrance && <p className="memorial-listen-context"><Flame size={17} aria-hidden="true" />Tuần tưởng niệm {featuredArtist.name} · {heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</p>}
               <h3>{featuredWork.title}</h3>
               <p className="memorial-listen-meta">{[workCaption(featuredWork), featuredArtist.name].filter(Boolean).join(" · ")}</p>
@@ -171,16 +178,22 @@ export default function MemorialHome() {
                 <Link className="memorial-text-link" to={artistHref(featuredArtist)}>Xem trang tưởng niệm<ArrowRight size={16} aria-hidden="true" /></Link>
               </div>
             </div>
+            {(featuredVideo || featuredWork.excerpt) && <div className="memorial-listen-media">
+              {featuredVideo && <YouTubePlayer key={featuredVideo} id={featuredVideo} title={featuredWork.title} />}
+              {featuredWork.excerpt && <WorkExcerpt text={featuredWork.excerpt} title={featuredWork.title} />}
+            </div>}
           </div>
-          {moreWorks.length > 0 && <div className="memorial-listen-more">
-            <h3>Những tác phẩm khác</h3>
-            <ul>{moreWorks.map((work) => {
-              const artist = artistsById.get(work.profile_id);
-              return artist && <li key={work.id}><Link className="memorial-name-link" to={artistHref(artist)}><strong>{work.title}</strong><small>{artist.name}</small></Link></li>;
-            })}</ul>
-          </div>}
         </div>
       </section>}
+
+      <section id="tim-nghe-si" className="memorial-wall-section" aria-labelledby="wall-title">
+        <div className="memorial-shell memorial-section-head"><h2 id="wall-title" className="memorial-section-title">Những gương mặt</h2><span className="memorial-section-links"><Link className="memorial-text-link" to="/danh-sach">Xem cả {artists.length} người</Link></span></div>
+        <div className="memorial-wall memorial-stagger">{wallArtists.map((artist) => <Link key={artist.id} to={artistHref(artist)} className="memorial-wall-face">
+          <MemorialPortrait src={artist.avatar_url} name={artist.name} />
+          <span><strong>{artist.name}</strong><small>{formatLifespan(artist.birth_date, artist.death_date)}</small>{artist.tagline && <em>{innerQuotes(artist.tagline)}</em>}</span>
+        </Link>)}</div>
+        {artForms.length > 1 && <nav className="memorial-shell memorial-lenses" aria-label="Xem theo lĩnh vực">{artForms.map(({ form, count }) => <Link key={form} to={`/tra-cuu?linhvuc=${encodeURIComponent(form)}`}><strong>{form}</strong><small>{count} người</small></Link>)}</nav>}
+      </section>
 
       <section className="memorial-shell memorial-section memorial-voices" aria-labelledby="voices-title">
         {shownQuotes.length > 0 && <>
@@ -189,7 +202,7 @@ export default function MemorialHome() {
             const artist = artistsById.get(quote.profile_id);
             const sourceUrl = publicHttpUrl(quote.url);
             return <figure key={quote.id}>
-              <blockquote>“{quote.quote}”</blockquote>
+              <blockquote>“{innerQuotes(quote.quote)}”</blockquote>
               <figcaption>
                 <span>{[quote.speaker, artist && `về ${artist.name}`].filter(Boolean).join(", ")}</span>
                 {quote.source && (sourceUrl ? <a href={sourceUrl} target="_blank" rel="noopener noreferrer">{quote.source}</a> : <cite>{quote.source}</cite>)}
@@ -200,7 +213,7 @@ export default function MemorialHome() {
         <div className="memorial-visitor-notes">
           {shownQuotes.length > 0 ? <h3>Những lời tưởng nhớ</h3> : <div className="memorial-section-head"><h2 id="voices-title" className="memorial-section-title">Những lời tưởng nhớ</h2></div>}
           {recentTributes.length > 0 && <div className="memorial-visitor-list">{recentTributes.map((tribute) => <figure key={tribute.id}>
-            <blockquote>“{tribute.content}”</blockquote>
+            <blockquote>“{innerQuotes(tribute.content)}”</blockquote>
             <figcaption>{tribute.author_name} · gửi {parseName(tribute.artist.name).shortName}{tribute.created_at ? " · " + dotDate(new Date(tribute.created_at)) : ""}</figcaption>
           </figure>)}</div>}
           {showRemembrance && heroRemembrance
@@ -208,7 +221,21 @@ export default function MemorialHome() {
               <span>{remembranceToday ? "Hôm nay" : `Ngày ${heroRemembrance.date.getDate()}/${heroRemembrance.date.getMonth() + 1}`} tròn {heroRemembrance.years} năm {heroRemembrance.artist.name} rời xa.</span>
               <strong>Gửi một lời tưởng nhớ<ArrowRight size={17} aria-hidden="true" /></strong>
             </Link>
-            : <Link className="memorial-invite" to="/danh-sach"><span>{recentTributes.length ? "Bạn cũng có thể gửi một lời." : "Chưa có lời tưởng nhớ nào."}</span><strong>Chọn một nghệ sĩ để gửi lời<ArrowRight size={17} aria-hidden="true" /></strong></Link>}
+            : <Link className="memorial-invite" to="/danh-sach"><span>{recentTributes.length ? "Bạn cũng có thể gửi một lời." : "Chưa có lời tưởng nhớ nào."}</span><strong>Chọn một người để gửi lời<ArrowRight size={17} aria-hidden="true" /></strong></Link>}
+        </div>
+      </section>
+
+      <section className="memorial-visit" aria-labelledby="visit-title">
+        <div className="memorial-shell memorial-visit-inner">
+          <div>
+            <h2 id="visit-title" className="memorial-section-title">Đến viếng</h2>
+            <p>Bản đồ số của Hoa Viên chỉ đúng vị trí từng ngôi mộ. Mở bản đồ trên điện thoại khi đến nơi để tìm đường trong khu mộ.</p>
+            {visitFacts.length > 0 && <dl>{visitFacts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
+          </div>
+          <div className="memorial-visit-actions">
+            <a className="memorial-button" href={GRAVE_MAP_URL} target="_blank" rel="noopener noreferrer"><MapIcon size={17} aria-hidden="true" />Mở bản đồ số</a>
+            <Link className="memorial-text-link" to="/noi-an-nghi">Tìm số mộ theo tên<ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
         </div>
       </section>
     </main>}

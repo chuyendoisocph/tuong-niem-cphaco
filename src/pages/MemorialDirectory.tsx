@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { MemorialFooter, MemorialHeader, MemorialPortrait } from "@/components/memorial/MemorialLayout";
 import { useArtists } from "@/hooks/usePublicMemorial";
 import { foldVietnamese, formatLifespan, groupByDecade, parseName } from "@/lib/memorial";
+import { pageTitle } from "@/lib/site";
 import { resetMetaTags, updateMetaTags } from "@/utils/metaTags";
 
 export default function MemorialDirectory() {
@@ -12,7 +13,7 @@ export default function MemorialDirectory() {
   const [profession, setProfession] = useState("Tất cả");
 
   useEffect(() => {
-    updateMetaTags({ title: "Tất cả nghệ sĩ | Đường Nghệ Sỹ · Hoa Viên Bình Dương", description: "Danh sách nghệ sĩ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.", url: window.location.href });
+    updateMetaTags({ title: pageTitle("Danh sách"), description: "Danh sách các nghệ sỹ và danh nhân được tưởng niệm tại Hoa Viên Bình Dương.", url: window.location.href });
     return () => resetMetaTags();
   }, []);
 
@@ -30,13 +31,12 @@ export default function MemorialDirectory() {
     <MemorialHeader />
     <main className="memorial-shell">
       <div className="memorial-directory-head">
-        <p className="memorial-eyebrow">Đường Nghệ Sỹ, Hoa Viên Bình Dương</p>
-        <h1 className="memorial-display">Tất cả nghệ sĩ</h1>
+        <h1 className="memorial-display">Danh sách</h1>
         <label className="memorial-search-field"><Search size={20} aria-hidden="true" /><input type="search" aria-label="Tìm theo tên" placeholder="Tìm theo tên" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         <div className="memorial-filters" role="group" aria-label="Lọc theo nghề">
           {professions.map((job) => <button key={job} type="button" className="memorial-filter" aria-pressed={profession === job} onClick={() => setProfession(job)}>{job}</button>)}
         </div>
-        <p className="memorial-directory-count" aria-live="polite">{isLoading ? "Đang tải" : filtered.length + " nghệ sĩ"}</p>
+        <p className="memorial-directory-count" aria-live="polite">{isLoading ? "Đang tải" : filtered.length + " người"}</p>
       </div>
       {error ? <p className="memorial-section-empty">Không tải được trang. Vui lòng thử lại sau.</p> : groups.length ? groups.map((group) => <section key={group.label} className="memorial-decade" aria-label={group.label}>
         <h2>{group.decade === null ? group.label : "Thập niên " + group.label}</h2>
@@ -45,7 +45,7 @@ export default function MemorialDirectory() {
           <h3>{artist.name}</h3>
           <p>{formatLifespan(artist.birth_date, artist.death_date)}</p>
         </Link>)}</div>
-      </section>) : !isLoading && <p className="memorial-section-empty">Không có nghệ sĩ nào khớp với lựa chọn này.</p>}
+      </section>) : !isLoading && <p className="memorial-section-empty">Không có ai khớp với lựa chọn này.</p>}
     </main>
     <MemorialFooter />
   </div>;

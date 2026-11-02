@@ -1,15 +1,21 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+import { Search } from "lucide-react";
 import { initialOf } from "@/lib/memorial";
+import { SITE_NAME, SITE_SUBTITLE } from "@/lib/site";
 import "@/styles/memorial.css";
 
 export function MemorialHeader() {
   return <header className="memorial-header memorial-shell">
     <Link className="memorial-brand" to="/">
       <img src="/cphaco-logo.png" alt="Logo CPHACO" width="60" height="60" />
-      <span className="memorial-brand-text"><span className="memorial-brand-name">Đường Nghệ Sỹ</span><span className="memorial-brand-sub">Hoa Viên Bình Dương</span></span>
+      <span className="memorial-brand-text"><span className="memorial-brand-name">{SITE_NAME}</span><span className="memorial-brand-sub">{SITE_SUBTITLE}</span></span>
     </Link>
-    <Link className="memorial-header-link" to="/danh-sach">Tất cả nghệ sĩ</Link>
+    <nav className="memorial-header-nav" aria-label="Điều hướng chính">
+      <NavLink className="memorial-header-link" to="/tra-cuu"><Search size={15} aria-hidden="true" />Tra cứu</NavLink>
+      <NavLink className="memorial-header-link" to="/noi-an-nghi">Nơi an nghỉ</NavLink>
+      <NavLink className="memorial-header-link" to="/danh-sach">Danh sách</NavLink>
+    </nav>
   </header>;
 }
 
@@ -47,7 +53,7 @@ export function MemorialImage({ src, alt, className = "", position }: {
 }) {
   return <div className={`memorial-place-image ${className}`}>
     {src ? <img src={src} alt={alt} style={position ? { objectPosition: position } : undefined} /> :
-      <span className="memorial-image-fallback">Đường Nghệ Sỹ<br />Hoa Viên Bình Dương</span>}
+      <span className="memorial-image-fallback">{SITE_NAME}<br />{SITE_SUBTITLE}</span>}
   </div>;
 }
 

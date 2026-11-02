@@ -1,12 +1,16 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { ArrowRight, CalendarPlus, Flame, Flower2, MapPin, Share2 } from "lucide-react";
+import { ArrowRight, CalendarPlus, ExternalLink, Flame, Flower2, Navigation, PenLine } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { MemorialFooter, MemorialHeader, MemorialPage, MemorialPortrait } from "@/components/memorial/MemorialLayout";
+import { PhotoViewer, type ViewerPhoto } from "@/components/memorial/PhotoViewer";
+import { ShareButton } from "@/components/memorial/ShareButton";
 import { TributeForm } from "@/components/memorial/TributeForm";
+import { WorkExcerpt, YouTubePlayer } from "@/components/memorial/WorkMedia";
 import { useArtist, useArtistPhotos, useArtists, useFlowerCount, useMemorialItems, useOfferFlower, useTributes, type MemorialArtist } from "@/hooks/usePublicMemorial";
-import { foldVietnamese, formatLifespan, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, worksHeading } from "@/lib/memorial";
+import { directionsUrl, foldVietnamese, formatLifespan, graveMapUrl, innerQuotes, relativesOf, nextAnniversary, parseLooseDate, parseName, publicHttpUrl, restingFacts, restingPlaceName, revisitVerb, tributePrompts, worksHeading, youtubeId } from "@/lib/memorial";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { pageTitle } from "@/lib/site";
 import { resetMetaTags, updateMetaTags } from "@/utils/metaTags";
 
 const artistHref = (artist: MemorialArtist) => "/" + (artist.slug || artist.id);
@@ -64,17 +68,17 @@ export default function MemorialArtist() {
   const { data: flowerCount = 0 } = useFlowerCount(artist?.id);
   const { data: allArtists = [] } = useArtists();
   const offerFlower = useOfferFlower(artist?.id);
-  const [copied, setCopied] = useState(false);
   const [showAllTributes, setShowAllTributes] = useState(false);
   const [lifeOpen, setLifeOpen] = useState(false);
   const [legacyTab, setLegacyTab] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!artist) return;
     updateMetaTags({
-      title: artist.name + " | Đường Nghệ Sỹ · Hoa Viên Bình Dương",
-      description: "Nhớ về " + artist.name + " tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.",
-      image: artist.avatar_url,
+      title: pageTitle(artist.name),
+      description: "Nhớ về " + artist.name + ", an nghỉ tại " + restingPlaceName(artist) + ".",
+      image: artist.avatar_url ?? undefined,
       url: window.location.href,
     });
     return () => resetMetaTags();
@@ -82,7 +86,7 @@ export default function MemorialArtist() {
 
   useEffect(() => {
     if (!isLoading && !error && !artist) {
-      document.title = "Không tìm thấy trang này. | Đường Nghệ Sỹ · Hoa Viên Bình Dương";
+      document.title = pageTitle("Không tìm thấy trang này.");
     }
   }, [artist, error, isLoading]);
 
@@ -92,21 +96,9 @@ export default function MemorialArtist() {
     }
   }, [artist, location.hash]);
 
-  async function share() {
-    const url = artist ? window.location.origin + artistHref(artist) : window.location.href;
-    if (navigator.share) {
-      try { await navigator.share({ title: document.title, url }); } catch { /* Share sheet closed. */ }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch { /* Clipboard access is unavailable. */ }
-  }
-
   if (isLoading) return <MemorialPage><main className="memorial-shell memorial-not-found" aria-label="Đang tải"><div className="memorial-skeleton" style={{ width: "55%", height: 80 }} /></main></MemorialPage>;
   if (error) return <MemorialPage><main className="memorial-shell memorial-not-found"><p>Không tải được trang. Vui lòng thử lại sau.</p></main></MemorialPage>;
-  if (!artist) return <MemorialPage><main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Không tìm thấy trang này.</h1><Link className="memorial-text-link" to="/">Về trang chủ Đường Nghệ Sỹ</Link></main></MemorialPage>;
+  if (!artist) return <MemorialPage><main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Không tìm thấy trang này.</h1><Link className="memorial-text-link" to="/">Về trang chủ</Link></main></MemorialPage>;
 
   const { honorific, profession, shortName } = parseName(artist.name);
   const works = items.filter((item) => item.kind === "work" && foldVietnamese(item.title) !== foldVietnamese(artist.tagline ?? ""));
@@ -119,15 +111,29 @@ export default function MemorialArtist() {
   const showLifeToggle = !!artist.biography && (showTimeline || longBiography);
   const death = parseLooseDate(artist.death_date);
   const nextMemorial = nextAnniversary(artist.death_date, new Date());
-  const remembranceHref = nextMemorial ? "#tuong-niem" : "#gui-loi";
-  const mapUrl = publicHttpUrl(artist.maps_url);
-  const galleryPhotos = photos.flatMap((photo) => {
-    const url = publicHttpUrl(photo.url);
-    return url ? [{ ...photo, url }] : [];
+  const directions = directionsUrl(artist);
+  const graveMap = graveMapUrl(artist);
+  const graveFacts = restingFacts(artist);
+  const sources = (artist.sources ?? []).filter((source) => publicHttpUrl(source.url));
+  const relatives = relativesOf(artist.slug).flatMap(({ slug: relativeSlug, relation }) => {
+    const relative = allArtists.find((other) => other.slug === relativeSlug);
+    return relative ? [{ relative, relation }] : [];
   });
+  // Archive photos and approved visitor photos form one album; visitor photos are credited to whoever sent them.
+  const galleryPhotos = photos.flatMap((photo): (ViewerPhoto & { commentId: string | null })[] => {
+    const url = publicHttpUrl(photo.url);
+    if (!url) return [];
+    const credit = photo.comment_id ? `Ảnh của ${photo.author_name ?? "người viếng"}` : null;
+    return [{ id: photo.id, url, caption: photo.caption, credit, commentId: photo.comment_id }];
+  });
+  const albumIndexById = new Map(galleryPhotos.map((photo, index) => [photo.id, index]));
+  const photosByTribute = new Map<string, typeof galleryPhotos>();
+  for (const photo of galleryPhotos) {
+    if (photo.commentId) photosByTribute.set(photo.commentId, [...(photosByTribute.get(photo.commentId) ?? []), photo]);
+  }
   const legacyTabs = [
-    ...(works.length ? [{ id: "tac-pham", label: worksHeading(works) }] : []),
-    ...(galleryPhotos.length ? [{ id: "hinh-anh", label: "Hình ảnh" }] : []),
+    ...(works.length ? [{ id: "tac-pham", label: worksHeading(works, artist.name) }] : []),
+    ...(galleryPhotos.length ? [{ id: "hinh-anh", label: `Hình ảnh (${galleryPhotos.length})` }] : []),
   ];
   const activeLegacy = legacyTabs.find((tab) => tab.id === legacyTab)?.id ?? legacyTabs[0]?.id;
   const visibleTributes = showAllTributes ? tributes : tributes.slice(0, TRIBUTE_PREVIEW);
@@ -159,12 +165,13 @@ export default function MemorialArtist() {
             {shortName}
           </h1>
           <p className="memorial-life-dates">{formatLifespan(artist.birth_date, artist.death_date)}</p>
-          {artist.tagline && <p className="memorial-tagline">“{artist.tagline}”</p>}
+          {artist.grave_number && <a className="memorial-hero-grave" href="#noi-an-nghi">Số mộ {artist.grave_number}</a>}
+          {artist.tagline && <p className="memorial-tagline">“{innerQuotes(artist.tagline)}”</p>}
           {nextMemorial?.isToday && <a className="memorial-today-note" href="#tuong-niem"><Flame size={17} aria-hidden="true" />Hôm nay là ngày tưởng niệm {shortName}</a>}
           <div className="memorial-quiet-actions">
-            <a href={remembranceHref}><Flame size={17} aria-hidden="true" />Tưởng niệm</a>
+            <a href="#gui-loi"><PenLine size={17} aria-hidden="true" />Gửi lời</a>
             <button type="button" disabled={offerFlower.isPending} onClick={() => offerFlower.mutate()}><Flower2 size={17} aria-hidden="true" />Dâng hoa</button>
-            <button type="button" onClick={share}><Share2 size={17} aria-hidden="true" />{copied ? "Đã chép liên kết" : "Chia sẻ"}</button>
+            <ShareButton url={pageUrl} title={artist.name} />
           </div>
           <p className="memorial-flower-note" role="status">{offerFlower.isSuccess ? `Bạn vừa dâng một đóa hoa. Đã có ${flowerCount} đóa hoa dâng ${shortName}.` : ""}</p>
           {offerFlower.isError && <p className="memorial-form-error" role="alert">Chưa dâng hoa được. Xin thử lại sau ít phút.</p>}
@@ -175,9 +182,15 @@ export default function MemorialArtist() {
         <div className="memorial-grave">
           <div>
             <h2 id="grave-title" className="memorial-section-title">Nơi an nghỉ</h2>
-            <p className="memorial-grave-place">Đường Nghệ Sỹ, Hoa Viên Nghĩa trang Bình Dương</p>
-            {artist.grave_number && <dl className="memorial-grave-facts"><div><dt>Số mộ</dt><dd>{artist.grave_number}</dd></div></dl>}
-            {mapUrl && <a className="memorial-text-link" href={mapUrl} target="_blank" rel="noopener noreferrer"><MapPin size={17} aria-hidden="true" />Xem vị trí mộ trên bản đồ<ArrowRight size={16} aria-hidden="true" /></a>}
+            <p className="memorial-grave-place">{restingPlaceName(artist)}</p>
+            {artist.resting_address && <p className="memorial-grave-address">{artist.resting_address}</p>}
+            {graveFacts.length > 0 && <dl className="memorial-grave-facts">{graveFacts.map((fact) => <div key={fact.label} data-kind={fact.label === "Tọa độ GPS" ? "coordinates" : undefined}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>}
+            {relatives.length > 0 && <div className="memorial-relatives"><h3>Người thân cùng an nghỉ tại đây</h3><ul>{relatives.map(({ relative, relation }) => <li key={relative.id}><Link className="memorial-name-link" to={artistHref(relative)}>{relative.name}</Link><span>{relation}{relative.grave_number ? `, số mộ ${relative.grave_number}` : ""}</span></li>)}</ul></div>}
+            <div className="memorial-grave-actions">
+              {graveMap ? <a className="memorial-button" href={graveMap} target="_blank" rel="noopener noreferrer"><Navigation size={17} aria-hidden="true" />Xem vị trí mộ</a>
+                : directions && <a className="memorial-button" href={directions} target="_blank" rel="noopener noreferrer"><Navigation size={17} aria-hidden="true" />Chỉ đường</a>}
+              <Link className="memorial-text-link" to="/noi-an-nghi">Xem tất cả nơi an nghỉ<ArrowRight size={16} aria-hidden="true" /></Link>
+            </div>
           </div>
           <div className="memorial-page-qr"><div className="memorial-page-qr-code" role="img" aria-label={`Mã QR dẫn đến trang tưởng niệm của ${artist.name}`}><QRCodeSVG value={pageUrl} size={96} level="M" bgColor="#fdfcf8" fgColor="#1e3a5f" /></div><div><strong>Mã QR trang tưởng niệm</strong><p>{["localhost", "127.0.0.1"].includes(window.location.hostname) ? "Mã xem thử trên máy này. Khi trang có địa chỉ công khai, mã sẽ mở được trên thiết bị khác." : `Quét mã để mở lại trang tưởng niệm của ${shortName}.`}</p></div></div>
         </div>
@@ -196,11 +209,24 @@ export default function MemorialArtist() {
           {legacyTabs.map((tab, index) => <button key={tab.id} id={`tab-${tab.id}`} type="button" role="tab" aria-selected={activeLegacy === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={activeLegacy === tab.id ? 0 : -1} onClick={() => setLegacyTab(tab.id)} onKeyDown={(event) => moveLegacyTab(event, index)}>{tab.label}</button>)}
         </div>}
         {activeLegacy === "tac-pham" && <div id="panel-tac-pham" role={legacyTabs.length > 1 ? "tabpanel" : undefined} aria-labelledby={legacyTabs.length > 1 ? "tab-tac-pham" : undefined} className="memorial-works-list">
-          {legacyTabs.length === 1 && <h3 className="memorial-legacy-single">{worksHeading(works)}</h3>}
-          {works.map((work, index) => <div key={work.id} className="memorial-works-row" data-signature={index === 0} data-dated={worksDated}>{worksDated && <span className="memorial-mono">{work.year ?? ""}</span>}<div><h3>{work.title}</h3>{work.description && <p>{work.description}</p>}</div></div>)}
+          {legacyTabs.length === 1 && <h3 className="memorial-legacy-single">{worksHeading(works, artist.name)}</h3>}
+          {works.map((work, index) => {
+            const video = youtubeId(work.url);
+            const link = video ? null : publicHttpUrl(work.url);
+            return <div key={work.id} className="memorial-works-row" data-signature={index === 0} data-dated={worksDated}>
+              {worksDated && <span className="memorial-mono">{work.year ?? ""}</span>}
+              <div>
+                <h3>{work.title}</h3>
+                {work.description && <p>{work.description}</p>}
+                {video && <YouTubePlayer id={video} title={work.title} />}
+                {work.excerpt && <WorkExcerpt text={work.excerpt} title={work.title} />}
+                {link && <a className="memorial-text-link memorial-work-link" href={link} target="_blank" rel="noopener noreferrer">{revisitVerb(work, artist.name)}<ExternalLink size={15} aria-hidden="true" /></a>}
+              </div>
+            </div>;
+          })}
         </div>}
         {activeLegacy === "hinh-anh" && <div id="panel-hinh-anh" role={legacyTabs.length > 1 ? "tabpanel" : undefined} aria-labelledby={legacyTabs.length > 1 ? "tab-hinh-anh" : undefined} className="memorial-photo-grid">
-          {galleryPhotos.map((photo) => <figure key={photo.id}><a href={photo.url} target="_blank" rel="noopener noreferrer" aria-label={photo.caption ? `Xem ảnh: ${photo.caption}` : `Xem ảnh tư liệu về ${shortName}`}><img src={photo.url} alt={photo.caption || `Ảnh tư liệu về ${artist.name}`} loading="lazy" /></a>{photo.caption && <figcaption>{photo.caption}</figcaption>}</figure>)}
+          {galleryPhotos.map((photo, index) => <figure key={photo.id}><button type="button" aria-label={photo.caption ? `Xem ảnh: ${photo.caption}` : `Xem ảnh ${index + 1} về ${shortName}`} onClick={() => setViewerIndex(index)}><img src={photo.url} alt={photo.caption || `Ảnh về ${artist.name}`} loading="lazy" /></button>{(photo.caption || photo.credit) && <figcaption>{[photo.caption, photo.credit].filter(Boolean).join(" · ")}</figcaption>}</figure>)}
         </div>}
       </section>}
 
@@ -221,16 +247,29 @@ export default function MemorialArtist() {
         </div>
       </section>}
 
+      {sources.length > 0 && <section className="memorial-shell memorial-sources" aria-labelledby="sources-title">
+        <h2 id="sources-title">Nguồn tham khảo</h2>
+        <ul>{sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<ExternalLink size={14} aria-hidden="true" /></a></li>)}</ul>
+      </section>}
+
       <section id="loi-tri-an" className="memorial-shell memorial-section" aria-labelledby="tributes-title">
         <div className="memorial-tribute-layout">
           <div id="gui-loi">
             <h2 id="tributes-title" className="memorial-section-title">Để lại đôi lời tưởng nhớ</h2>
-            <TributeForm profileId={artist.id} shortName={shortName} />
+            <TributeForm profileId={artist.id} shortName={shortName} prompts={tributePrompts(shortName, works, artist.name)} />
           </div>
           <div className="memorial-tribute-feed">
             <h3>{tributes.length ? `Những lời tưởng nhớ (${tributes.length})` : "Những lời tưởng nhớ"}</h3>
             {tributes.length ? <>
-              {visibleTributes.map((tribute) => <figure key={tribute.id}><blockquote className="memorial-quote">“{tribute.content}”</blockquote><figcaption className="memorial-tribute-byline">{tribute.author_name}{tribute.created_at ? " · " + dotDate(new Date(tribute.created_at)) : ""}</figcaption></figure>)}
+              {visibleTributes.map((tribute) => {
+                const tributePhotos = photosByTribute.get(tribute.id) ?? [];
+                return <figure key={tribute.id}>
+                  {tribute.prompt && <p className="memorial-tribute-prompt">{tribute.prompt}</p>}
+                  <blockquote className="memorial-quote">“{innerQuotes(tribute.content)}”</blockquote>
+                  {tributePhotos.length > 0 && <div className="memorial-tribute-photos">{tributePhotos.map((photo, index) => <button key={photo.id} type="button" aria-label={`Xem ảnh ${index + 1} của ${tribute.author_name}`} onClick={() => setViewerIndex(albumIndexById.get(photo.id) ?? null)}><img src={photo.url} alt="" loading="lazy" /></button>)}</div>}
+                  <figcaption className="memorial-tribute-byline">{tribute.author_name}{tribute.created_at ? " · " + dotDate(new Date(tribute.created_at)) : ""}</figcaption>
+                </figure>;
+              })}
               {tributes.length > TRIBUTE_PREVIEW && <button type="button" className="memorial-more" aria-expanded={showAllTributes} onClick={() => setShowAllTributes((open) => !open)}>{showAllTributes ? "Thu gọn" : `Xem thêm ${tributes.length - TRIBUTE_PREVIEW} lời`}</button>}
             </> : <p className="memorial-prose">Chưa có lời nào được gửi tới {shortName}. Lời của bạn sẽ là lời đầu tiên.</p>}
           </div>
@@ -238,11 +277,12 @@ export default function MemorialArtist() {
       </section>
 
       {related.length > 0 && <section className="memorial-shell memorial-section" aria-labelledby="related-title">
-        <div className="memorial-section-head"><h2 id="related-title" className="memorial-section-title">Cùng tưởng nhớ những người nghệ sĩ</h2></div>
+        <div className="memorial-section-head"><h2 id="related-title" className="memorial-section-title">Cùng tưởng nhớ</h2></div>
         <div className="memorial-related-grid">{related.map((other) => <Link key={other.id} className="memorial-name-link" to={artistHref(other)}><MemorialPortrait src={other.avatar_url} name={other.name} /><h3>{other.name}</h3><p>{formatLifespan(other.birth_date, other.death_date)}</p></Link>)}</div>
-        <Link className="memorial-text-link memorial-related-more" to="/danh-sach">Khám phá Đường Nghệ Sỹ<ArrowRight size={16} aria-hidden="true" /></Link>
+        <Link className="memorial-text-link memorial-related-more" to="/danh-sach">Xem toàn bộ danh sách<ArrowRight size={16} aria-hidden="true" /></Link>
       </section>}
     </main>
-    <MemorialFooter><p className="memorial-prose">Tiểu sử và hình ảnh do CPHACO tổng hợp. Nếu bạn phát hiện sai sót hoặc giữ tư liệu về nghệ sĩ, xin liên hệ để chúng tôi đính chính và ghi nguồn.</p></MemorialFooter>
+    <PhotoViewer photos={galleryPhotos} index={viewerIndex} alt={`Ảnh về ${artist.name}`} onClose={() => setViewerIndex(null)} onMove={setViewerIndex} />
+    <MemorialFooter><p className="memorial-prose">Tiểu sử và hình ảnh do CPHACO tổng hợp. Nếu bạn phát hiện sai sót hoặc giữ tư liệu về {shortName}, xin liên hệ để chúng tôi đính chính và ghi nguồn.</p></MemorialFooter>
   </div>;
 }

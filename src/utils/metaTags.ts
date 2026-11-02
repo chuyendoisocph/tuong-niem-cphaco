@@ -1,4 +1,5 @@
 // Utility functions for updating meta tags dynamically
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 
 export const updateMetaTags = (options: {
   title?: string;
@@ -76,8 +77,8 @@ const updateMetaTag = (property: string, content: string) => {
 
 export const resetMetaTags = () => {
   updateMetaTags({
-    title: 'Đường Nghệ Sỹ · Hoa Viên Bình Dương | Tưởng niệm nghệ sĩ',
-    description: 'Nhớ về những nghệ sĩ đang an nghỉ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     url: window.location.origin
   });
 };
