@@ -25,7 +25,7 @@ Cần chạy `supabase/migrations/20261022010000_resting_places.sql` trước. S
 | Cột | Nhập gì |
 |---|---|
 | `in_hoa_vien` | `true` nếu an nghỉ tại Đường Nghệ Sỹ, Hoa Viên Bình Dương; `false` nếu ở nơi khác |
-| `grave_area`, `grave_lot`, `grave_number` | Khu, Lô, Số mộ |
+| `grave_area`, `grave_lot`, `grave_number` | Khu, Lô, Vị trí |
 | `resting_place` | Tên nghĩa trang hoặc chùa khi ở ngoài Hoa Viên, ví dụ "Nghĩa trang Gò Dưa" |
 | `resting_address` | Địa chỉ bằng chữ |
 | `latitude`, `longitude` | Tọa độ GPS của ngôi mộ, ví dụ `10.987654` và `106.654321` (lấy từ Google Maps: nhấn giữ vị trí mộ rồi chép hai số) |

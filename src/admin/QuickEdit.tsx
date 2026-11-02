@@ -92,7 +92,7 @@ export default function QuickEdit({ profile, gaps, counts, onClose }: { profile:
           <button type="button" className="admin-button admin-button-quiet admin-button-small" disabled={uploading} onClick={() => fileInput.current?.click()}><ImagePlus size={15} aria-hidden="true" />{uploading ? "Đang tải ảnh" : form.avatar_url ? "Thay ảnh" : "Tải ảnh chân dung"}</button>
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => { void choosePortrait(event.target.files?.[0]); event.target.value = ""; }} />
         </div>
-        {profile.in_hoa_vien && <label>Số mộ<input value={form.grave_number} placeholder="Ví dụ B1.2.2-11-03" onChange={(event) => set("grave_number", event.target.value)} /></label>}
+        {profile.in_hoa_vien && <label>Mã vị trí mộ<input value={form.grave_number} placeholder="Ví dụ B1.2.2-11-03" onChange={(event) => set("grave_number", event.target.value)} /></label>}
         <label>{profile.in_hoa_vien ? "Vị trí trong Hoa Viên (để trống nếu ở Đường Nghệ Sỹ)" : "Nơi an nghỉ"}<input value={form.resting_place} onChange={(event) => set("resting_place", event.target.value)} /></label>
         <label>Ngày mất<input inputMode="numeric" value={form.death} placeholder="22/12/2020" aria-invalid={!death.valid} onChange={(event) => set("death", event.target.value)} /></label>
         <label>Câu giới thiệu<input maxLength={140} value={form.tagline} onChange={(event) => set("tagline", event.target.value)} /></label>

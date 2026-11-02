@@ -144,7 +144,7 @@ export default function MemorialSearch() {
     <main className="memorial-shell">
       <div className="memorial-directory-head">
         <h1 className="memorial-display">Tra cứu</h1>
-        <p className="memorial-prose memorial-places-lead">Tìm theo tên, tác phẩm, vai diễn, năm sinh hoặc năm mất, một ngày trong năm như “22/10”, số mộ hay một chi tiết trong tiểu sử.</p>
+        <p className="memorial-prose memorial-places-lead">Tìm theo tên, tác phẩm, vai diễn, năm sinh hoặc năm mất, một ngày trong năm như “22/10”, vị trí hay một chi tiết trong tiểu sử.</p>
         <form className="memorial-search-field memorial-research-field" role="search" onSubmit={(event) => event.preventDefault()}>
           <Search size={22} aria-hidden="true" />
           <input type="search" autoFocus aria-label="Nội dung tra cứu" placeholder="Ví dụ: cải lương, 1975, 22/10, B1.2.2" value={rawQuery} onChange={(event) => setQuery(event.target.value, kind)} />
@@ -198,7 +198,7 @@ export default function MemorialSearch() {
             <MemorialPortrait src={artist.avatar_url} name={artist.name} />
             <span>
               <strong><Highlight text={artist.name} query={query} /></strong>
-              <small>{note ?? formatLifespan(artist.birth_date, artist.death_date)} · <Highlight text={restingPlaceName(artist)} query={query} />{artist.grave_number && <> · Số mộ <Highlight text={artist.grave_number} query={query} /></>}</small>
+              <small>{note ?? formatLifespan(artist.birth_date, artist.death_date)} · <Highlight text={restingPlaceName(artist)} query={query} />{artist.grave_number && <> · Vị trí <Highlight text={artist.grave_number} query={query} /></>}</small>
               {artist.tagline && <em><Highlight text={artist.tagline} query={query} /></em>}
             </span>
           </Link></li>;

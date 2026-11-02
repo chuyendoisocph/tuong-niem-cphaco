@@ -213,7 +213,7 @@ export default function ProfileEditor() {
         </div>
         {form.in_hoa_vien ? <>
           <div className="admin-row">
-            <Field label="Số mộ" hint="Ví dụ B1.2.2-11-03">{(fieldId) => <input id={fieldId} value={form.grave_number} onChange={(event) => update("grave_number", event.target.value)} />}</Field>
+            <Field label="Mã vị trí mộ" hint="Ví dụ B1.2.2-11-03">{(fieldId) => <input id={fieldId} value={form.grave_number} onChange={(event) => update("grave_number", event.target.value)} />}</Field>
             <Field label="Khu">{(fieldId) => <input id={fieldId} value={form.grave_area} onChange={(event) => update("grave_area", event.target.value)} />}</Field>
             <Field label="Lô">{(fieldId) => <input id={fieldId} value={form.grave_lot} onChange={(event) => update("grave_lot", event.target.value)} />}</Field>
           </div>

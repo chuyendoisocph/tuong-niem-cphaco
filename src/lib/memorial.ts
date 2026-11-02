@@ -365,7 +365,7 @@ export function restingFacts(place: RestingPlace): { label: string; value: strin
   const facts = [
     { label: "Khu", value: place.grave_area },
     { label: "Lô", value: place.grave_lot },
-    { label: "Số mộ", value: place.grave_number },
+    { label: "Vị trí", value: place.grave_number },
     { label: "Tọa độ GPS", value: formatCoordinates(place) },
   ];
   return facts.flatMap(({ label, value }) => value?.trim() ? [{ label, value: value.trim() }] : []);

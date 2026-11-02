@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Search } from "lucide-react";
-import { initialOf } from "@/lib/memorial";
-import { SITE_NAME, SITE_SUBTITLE } from "@/lib/site";
+import { ExternalLink, Search } from "lucide-react";
+import { ART_FORMS, initialOf } from "@/lib/memorial";
+import { GRAVE_MAP_URL, SITE_DESCRIPTION, SITE_NAME, SITE_SUBTITLE, VISIT_INFO } from "@/lib/site";
 import "@/styles/memorial.css";
 
 export function MemorialHeader() {
@@ -20,10 +20,40 @@ export function MemorialHeader() {
 }
 
 export function MemorialFooter({ children }: { children?: ReactNode }) {
-  return <footer className="memorial-footer memorial-shell">
-    {children}
-    <div className="memorial-footer-rule" />
-    <p>CPHACO, Hoa Viên Bình Dương</p>
+  const visitLines = [VISIT_INFO.address, VISIT_INFO.phone, VISIT_INFO.hours].filter((line) => line.trim());
+  return <footer className="memorial-footer">
+    <div className="memorial-shell">
+      {children}
+      <div className="memorial-footer-grid">
+        <div className="memorial-footer-about">
+          <Link className="memorial-brand" to="/">
+            <img src="/cphaco-logo.png" alt="" width="60" height="60" />
+            <span className="memorial-brand-text"><span className="memorial-brand-name">{SITE_NAME}</span><span className="memorial-brand-sub">{SITE_SUBTITLE}</span></span>
+          </Link>
+          <p>{SITE_DESCRIPTION}</p>
+        </div>
+        <nav aria-labelledby="footer-browse">
+          <h2 id="footer-browse">Tìm hiểu</h2>
+          <ul>
+            <li><Link to="/tra-cuu">Tra cứu</Link></li>
+            <li><Link to="/danh-sach">Danh sách</Link></li>
+            <li><Link to="/noi-an-nghi">Nơi an nghỉ</Link></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="footer-forms">
+          <h2 id="footer-forms">Lĩnh vực</h2>
+          <ul>{ART_FORMS.map((form) => <li key={form}><Link to={`/tra-cuu?linhvuc=${encodeURIComponent(form)}`}>{form}</Link></li>)}</ul>
+        </nav>
+        <div>
+          <h2>Đến viếng</h2>
+          <ul>
+            <li><a href={GRAVE_MAP_URL} target="_blank" rel="noopener noreferrer">Bản đồ số<ExternalLink size={14} aria-hidden="true" /></a></li>
+            {visitLines.map((line) => <li key={line}>{line}</li>)}
+          </ul>
+        </div>
+      </div>
+      <p className="memorial-footer-legal">© {new Date().getFullYear()} CPHACO, Hoa Viên Bình Dương</p>
+    </div>
   </footer>;
 }
 

@@ -28,7 +28,7 @@ export default function ProfileList() {
       <Link className="admin-button" to="/quan-tri/ho-so/moi"><Plus size={17} aria-hidden="true" />Thêm hồ sơ</Link>
     </div>
     <div className="admin-toolbar">
-      <label className="admin-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="Tìm hồ sơ" placeholder="Tìm theo tên hoặc số mộ" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+      <label className="admin-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="Tìm hồ sơ" placeholder="Tìm theo tên hoặc vị trí" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
       <div className="admin-segments" role="group" aria-label="Lọc hồ sơ">
         {FILTERS.map((option) => <button key={option.id} type="button" aria-pressed={filter === option.id} onClick={() => setFilter(option.id)}>{option.label} <small>{profiles.filter(option.test).length}</small></button>)}
       </div>
@@ -43,7 +43,7 @@ export default function ProfileList() {
             <strong>{profile.name}</strong>
           </Link></td>
           <td>{formatLifespan(profile.birth_date, profile.death_date)}</td>
-          <td>{profile.in_hoa_vien ? `Hoa Viên${profile.grave_number ? " · " + profile.grave_number : " · chưa có số mộ"}` : profile.resting_place ?? "Chưa rõ"}</td>
+          <td>{profile.in_hoa_vien ? `Hoa Viên${profile.grave_number ? " · " + profile.grave_number : " · chưa có vị trí"}` : profile.resting_place ?? "Chưa rõ"}</td>
           <td>{reason ? <span className="admin-status is-hidden">{reason}</span> : <span className="admin-status is-shown">Đang hiện</span>}</td>
         </tr>;
       })}</tbody>

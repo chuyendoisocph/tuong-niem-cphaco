@@ -165,7 +165,7 @@ export default function MemorialArtist() {
             {shortName}
           </h1>
           <p className="memorial-life-dates">{formatLifespan(artist.birth_date, artist.death_date)}</p>
-          {artist.grave_number && <a className="memorial-hero-grave" href="#noi-an-nghi">Số mộ {artist.grave_number}</a>}
+          {artist.grave_number && <a className="memorial-hero-grave" href="#noi-an-nghi">Vị trí {artist.grave_number}</a>}
           {artist.tagline && <p className="memorial-tagline">“{innerQuotes(artist.tagline)}”</p>}
           {nextMemorial?.isToday && <a className="memorial-today-note" href="#tuong-niem"><Flame size={17} aria-hidden="true" />Hôm nay là ngày tưởng niệm {shortName}</a>}
           <div className="memorial-quiet-actions">
@@ -185,7 +185,7 @@ export default function MemorialArtist() {
             <p className="memorial-grave-place">{restingPlaceName(artist)}</p>
             {artist.resting_address && <p className="memorial-grave-address">{artist.resting_address}</p>}
             {graveFacts.length > 0 && <dl className="memorial-grave-facts">{graveFacts.map((fact) => <div key={fact.label} data-kind={fact.label === "Tọa độ GPS" ? "coordinates" : undefined}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>}
-            {relatives.length > 0 && <div className="memorial-relatives"><h3>Người thân cùng an nghỉ tại đây</h3><ul>{relatives.map(({ relative, relation }) => <li key={relative.id}><Link className="memorial-name-link" to={artistHref(relative)}>{relative.name}</Link><span>{relation}{relative.grave_number ? `, số mộ ${relative.grave_number}` : ""}</span></li>)}</ul></div>}
+            {relatives.length > 0 && <div className="memorial-relatives"><h3>Người thân cùng an nghỉ tại đây</h3><ul>{relatives.map(({ relative, relation }) => <li key={relative.id}><Link className="memorial-name-link" to={artistHref(relative)}>{relative.name}</Link><span>{relation}{relative.grave_number ? `, vị trí ${relative.grave_number}` : ""}</span></li>)}</ul></div>}
             <div className="memorial-grave-actions">
               {graveMap ? <a className="memorial-button" href={graveMap} target="_blank" rel="noopener noreferrer"><Navigation size={17} aria-hidden="true" />Xem vị trí mộ</a>
                 : directions && <a className="memorial-button" href={directions} target="_blank" rel="noopener noreferrer"><Navigation size={17} aria-hidden="true" />Chỉ đường</a>}

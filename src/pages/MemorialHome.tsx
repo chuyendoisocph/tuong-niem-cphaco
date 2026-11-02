@@ -234,7 +234,7 @@ export default function MemorialHome() {
           </div>
           <div className="memorial-visit-actions">
             <a className="memorial-button" href={GRAVE_MAP_URL} target="_blank" rel="noopener noreferrer"><MapIcon size={17} aria-hidden="true" />Mở bản đồ số</a>
-            <Link className="memorial-text-link" to="/noi-an-nghi">Tìm số mộ theo tên<ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link className="memorial-text-link" to="/noi-an-nghi">Tìm vị trí mộ theo tên<ArrowRight size={16} aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
