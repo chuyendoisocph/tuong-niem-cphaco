@@ -100,35 +100,12 @@
 .memorial-image-fallback { display: grid; place-items: center; width: 100%; height: 100%; color: var(--navy-soft); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.1rem, 2vw, 1.5rem); line-height: 1.5; text-align: center; }
 
 .memorial-hero { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; gap: clamp(3rem, 7vw, 7rem); padding-block: clamp(4rem, 9vw, 8.5rem); }
-.memorial-hero-lead { max-width: 34rem; color: var(--prose); font-size: clamp(.95rem, 1.6vw, 1.12rem); line-height: 1.9; }
 
-.memorial-home-hero { position: relative; isolation: isolate; }
-.memorial:has(.memorial-home-hero)::after { display: none; }
-.memorial-home-hero-photo { position: relative; height: max(320px, min(56.25vw, 62svh, 720px)); overflow: hidden; background: var(--surface); }
-.memorial-home-hero-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 30% 45%; }
-.memorial-home-hero-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(253 252 248 / .3) 0%, rgb(253 252 248 / 0) 16%, rgb(253 252 248 / 0) 64%, rgb(253 252 248 / .82) 88%, var(--paper) 100%); }
-.memorial-home-hero-body { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "title remembrance" "lead remembrance" "search remembrance"; align-items: start; column-gap: clamp(2rem, 5vw, 5rem); margin-top: clamp(-6.5rem, -7vw, -3rem); padding-bottom: clamp(3rem, 6vw, 5.5rem); }
-.memorial-home-hero:not([data-remembrance]) .memorial-home-hero-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "lead" "search"; }
-.memorial-home-hero h1 { grid-area: title; max-width: 46rem; margin: 0 0 1.3rem; color: var(--navy); font-size: clamp(2.9rem, 5vw, 4.8rem); line-height: 1.06; letter-spacing: -.03em; }
-.memorial-home-hero h1 em { display: block; font-style: italic; font-weight: 400; }
-.memorial-home-hero .memorial-hero-lead { grid-area: lead; max-width: 36rem; margin: 0 0 2rem; font-size: clamp(1rem, 1.5vw, 1.12rem); }
 .memorial-hero-search { grid-area: search; display: flex; align-items: center; gap: .8rem; width: min(100%, 34rem); padding: .35rem 0 .35rem .1rem; border-bottom: 1.5px solid var(--navy); color: var(--navy-soft); }
 .memorial-hero-search:focus-within { border-color: var(--gold-text); }
 .memorial-hero-search input { flex: 1; min-width: 0; min-height: 48px; border: 0; outline: 0; background: transparent; color: var(--navy); font-size: 1.05rem; }
 .memorial-hero-search input::placeholder { color: var(--navy-soft); }
 .memorial-hero-search .memorial-button { flex: none; min-height: 44px; padding-inline: 1.4rem; }
-.memorial .memorial-hero-remembrance { grid-area: remembrance; justify-self: end; display: flex; flex-direction: column; gap: 1.1rem; width: 16rem; margin-top: clamp(-17rem, -19vw, -10rem); color: var(--navy); }
-.memorial-hero-remembrance .memorial-portrait { width: 100%; aspect-ratio: 3 / 4; padding: 8px; background: var(--paper); box-shadow: 0 1px 2px rgb(30 58 95 / .12), 0 26px 50px -14px rgb(20 40 60 / .42); }
-[data-remembrance='today'] .memorial-hero-remembrance .memorial-portrait { box-shadow: 0 0 0 1px rgb(197 160 89 / .55), 0 26px 56px -12px rgb(150 110 40 / .5); }
-.memorial-hero-remembrance-copy { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
-.memorial-hero-remembrance-status { display: inline-flex; align-items: center; gap: .45rem; color: var(--gold-text); font-size: .95rem; font-weight: 600; line-height: 1.4; }
-.memorial-hero-remembrance strong { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.45rem, 2.1vw, 1.8rem); font-weight: 500; line-height: 1.2; }
-.memorial-hero-remembrance-meta { color: var(--prose); font-size: .95rem; }
-.memorial-hero-remembrance-others { color: var(--navy-soft); font-size: .875rem; line-height: 1.5; }
-.memorial-hero-remembrance-cta { display: inline-flex; align-items: center; gap: .4rem; width: fit-content; margin-top: .45rem; border-bottom: 1px solid var(--gold-text); font-size: .95rem; font-weight: 600; }
-.memorial-hero-remembrance:hover strong, .memorial-hero-remembrance:hover .memorial-hero-remembrance-cta { color: var(--gold-text); }
-[data-remembrance='upcoming'] .memorial-hero-remembrance-status { color: var(--prose); }
-[data-remembrance='upcoming'] .memorial-hero-remembrance-status svg { display: none; }
 
 .memorial-section { padding-block: clamp(3.8rem, 7vw, 6.8rem); }
 .memorial-section-head { display: flex; align-items: end; justify-content: space-between; gap: 1rem 2rem; margin-bottom: 2.4rem; }
@@ -429,12 +406,6 @@
 
 @media (max-width: 900px) {
   .memorial-hero { grid-template-columns: 1fr; }
-  .memorial-home-hero-body { display: flex; flex-direction: column; align-items: stretch; }
-  .memorial-home-hero h1, .memorial-home-hero .memorial-hero-lead { order: 0; }
-  .memorial-hero-search { order: 2; }
-  .memorial .memorial-hero-remembrance { order: 3; flex-direction: row; align-items: center; gap: 1rem; width: 100%; margin: 2.2rem 0 0; }
-  [data-remembrance='today'] .memorial .memorial-hero-remembrance, .memorial [data-remembrance='today'] .memorial-hero-remembrance { order: 1; margin: 0 0 1.8rem; }
-  .memorial-hero-remembrance .memorial-portrait { flex: 0 0 6rem; width: 6rem; padding: 5px; }
   .memorial-months { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .memorial-face-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .memorial-artist-grid, .memorial-directory-grid, .memorial-related-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -448,12 +419,6 @@
   .memorial-place-person { grid-column: 1 / -1; }
   .memorial-place-detail { grid-row: 2; }
   .memorial-place-directions { grid-row: 2; padding-inline: .9rem; }
-  .memorial-home-hero-photo { height: 64vw; }
-  .memorial-home-hero-photo img { object-position: 16% 45%; }
-  .memorial-home-hero-body { margin-top: -2.6rem; padding-bottom: 2.8rem; }
-  .memorial-home-hero h1 { font-size: clamp(2.4rem, 10.5vw, 3.2rem); }
-  .memorial-hero-remembrance strong { font-size: 1.3rem; }
-  .memorial-hero-remembrance-cta { margin-top: .2rem; }
   .memorial-shell, .memorial-shell-narrow { width: min(100% - 48px, 36rem); }
   .memorial-header { min-height: 76px; }
   .memorial-brand img { width: 48px; height: 48px; }
@@ -489,7 +454,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .memorial-skeleton { animation: memorial-pulse 1.5s ease-in-out infinite alternate; }
-  .memorial-home-hero-photo img { animation: memorial-settle 2.4s cubic-bezier(.16, 1, .3, 1) backwards; }
   .memorial-enter { animation: memorial-rise .75s cubic-bezier(.2,.7,.2,1) backwards; }
   .memorial-enter:nth-child(2) { animation-delay: 140ms; }
   .memorial-enter:nth-child(3) { animation-delay: 280ms; }
@@ -512,7 +476,6 @@
 
 @keyframes memorial-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes memorial-settle { from { transform: scale(1.06); filter: saturate(.7); } to { transform: scale(1); filter: saturate(1); } }
 
 /* Home page: the band is the peak of the scroll, the wall is its second beat. */
 .memorial-listen-band { --navy: #fdfcf8; --navy-soft: #bcc7d4; --prose: #dbe1e8; --gold-text: #e3c88a; --rule: rgb(253 252 248 / .18); margin-top: 0; border-block: 0; background: #1e3a5f; color: #fdfcf8; }
@@ -562,8 +525,6 @@
   .memorial-wall-face:first-child { grid-column: 1 / -1; grid-row: auto; aspect-ratio: 1 / 1.14; }
 }
 
-.memorial-home-hero-photo { background: var(--paper); }
-.memorial-home-hero-photo img { height: calc(100% - 2px); }
 .memorial ::selection { background: #f3e5ab; color: #1e3a5f; }
 .memorial-month-section .memorial-artist-grid, .memorial-month-section .memorial-artist-grid[data-many='true'] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 1.2rem 2rem; }
 .memorial-month-section .memorial-artist-card { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; gap: 1rem; }
@@ -618,7 +579,7 @@
 .memorial-footer-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)); gap: 2.5rem clamp(1.5rem, 4vw, 3.5rem); }
 .memorial-footer-about p { max-width: 26rem; margin: 1.1rem 0 0; color: var(--prose); line-height: 1.65; }
 .memorial-footer .memorial-brand { color: var(--navy); }
-.memorial-footer .memorial-brand img { width: 52px; height: 52px; border-radius: 50%; background: #fdfcf8; }
+.memorial-footer .memorial-brand img { width: 52px; height: 52px; }
 .memorial-footer h2 { margin: 0 0 .7rem; color: var(--navy-soft); font-size: .88rem; font-weight: 600; }
 .memorial-footer ul { display: grid; gap: .1rem; margin: 0; padding: 0; list-style: none; }
 .memorial-footer li a { display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; color: var(--navy); }
@@ -631,3 +592,58 @@
 }
 .memorial-footer .memorial-prose { max-width: 44rem; margin: 0 0 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--rule); font-size: .95rem; }
 main:has(> .memorial-visit:last-child) + .memorial-footer { margin-top: 0; }
+
+/* Home hero: the entrance photo comes up like first light, the words rest on paper below it. */
+.home-hero { position: relative; padding-top: clamp(12px, 1.6vw, 24px); }
+.home-hero-frame { position: relative; height: clamp(260px, 42svh, 540px); margin-inline: clamp(12px, 1.6vw, 24px); overflow: hidden; background: #1e3a5f; }
+.home-hero-frame img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 30% 48%; }
+.home-hero-frame::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(30 58 95 / .1) 0%, rgb(30 58 95 / 0) 30%, rgb(30 58 95 / 0) 70%, rgb(30 58 95 / .18) 100%); }
+.home-hero-light { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 70% at 24% 6%, rgb(255 236 196 / .5), rgb(255 236 196 / 0) 70%); mix-blend-mode: soft-light; }
+.home-hero-body { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); align-items: end; gap: 1.6rem clamp(2rem, 4vw, 4rem); padding-top: clamp(1.8rem, 3vw, 2.8rem); }
+.home-hero-title { margin: 0; color: #1e3a5f; font-family: "Playfair Display", Georgia, serif; font-size: clamp(2.4rem, 4.3vw, 4.6rem); font-weight: 500; line-height: 1.02; letter-spacing: -.035em; }
+.home-hero-line { display: block; overflow: hidden; padding-bottom: .08em; }
+.home-hero-line > * { display: block; text-wrap: balance; }
+@media (min-width: 901px) { .home-hero-line > * { white-space: nowrap; } }
+.home-hero-title em { color: #806225; font-style: italic; font-weight: 400; }
+.home-hero-side { padding-bottom: .5rem; }
+.home-hero-lede { max-width: 28rem; margin: 0 0 1.4rem; color: #3f4f63; font-size: 1.06rem; line-height: 1.6; }
+.home-hero-search { width: 100%; max-width: 28rem; }
+.home-hero-strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem 2.5rem; margin-top: clamp(1.5rem, 2.4vw, 2.2rem); padding-block: .8rem; border-block: 1px solid #e6ddc6; }
+.home-hero-today { margin: 0; color: #55657a; font-size: .9rem; white-space: nowrap; }
+.home-hero-next { display: inline-grid; grid-template-columns: 44px auto 18px; align-items: center; gap: .9rem; justify-self: start; min-height: 56px; color: #1e3a5f; }
+.home-hero-next .memorial-portrait { width: 44px; height: 55px; aspect-ratio: auto; }
+.home-hero-next small { display: block; color: #55657a; font-size: .82rem; line-height: 1.35; }
+.home-hero-next strong { display: block; font-family: "Playfair Display", Georgia, serif; font-size: 1.15rem; font-weight: 500; line-height: 1.3; }
+.home-hero-next strong span { margin-left: .6rem; color: #806225; font-family: "Be Vietnam Pro", sans-serif; font-size: .9rem; font-weight: 600; }
+.home-hero-next svg { color: #806225; transition: transform .25s cubic-bezier(.4,0,.2,1); }
+.home-hero-next:hover svg, .home-hero-next:focus-visible svg { transform: translateX(3px); }
+.home-hero-next:hover strong { color: #806225; }
+[data-remembrance="today"] .home-hero-next small:first-child { color: #806225; font-weight: 600; }
+.home-hero-forms { display: flex; flex-wrap: wrap; gap: 0 1.4rem; }
+.home-hero-forms a { display: inline-flex; align-items: center; min-height: 44px; color: #1e3a5f; font-size: .95rem; font-weight: 500; }
+.home-hero-forms a:hover { color: #806225; text-decoration: underline; text-underline-offset: .25em; }
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-frame img { animation: home-dawn 2.8s cubic-bezier(.16,1,.3,1) both; }
+  .home-hero-light { animation: home-light 2.6s cubic-bezier(.16,1,.3,1) .3s both; }
+  .home-hero-line > * { animation: home-rise 1s cubic-bezier(.22,1,.36,1) both; }
+  .home-hero-line:nth-child(1) > * { animation-delay: .35s; }
+  .home-hero-line:nth-child(2) > * { animation-delay: .5s; }
+  .home-hero-side, .home-hero-strip { animation: memorial-rise .9s cubic-bezier(.22,1,.36,1) .7s both; }
+  .home-hero-strip { animation-delay: .85s; }
+}
+@keyframes home-dawn { from { filter: brightness(.6) saturate(.72); transform: scale(1.06); } to { filter: none; transform: none; } }
+@keyframes home-light { from { opacity: 0; } to { opacity: 1; } }
+@keyframes home-rise { from { transform: translateY(105%); } to { transform: none; } }
+@media (max-width: 900px) {
+  .home-hero-body { grid-template-columns: minmax(0, 1fr); }
+  .home-hero-strip { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+}
+@media (max-width: 640px) {
+  .home-hero-frame { height: 46vw; margin-inline: 0; }
+  .home-hero-body { padding-top: 1.4rem; }
+  .home-hero-lede { margin-bottom: 1rem; font-size: 1rem; }
+  .home-hero-strip { margin-top: 1.2rem; padding-block: .5rem; }
+  .home-hero-forms { display: none; }
+  .home-hero { padding-top: 0; }
+  .home-hero-title { font-size: clamp(2.3rem, 10.5vw, 3rem); }
+}

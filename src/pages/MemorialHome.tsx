@@ -29,13 +29,14 @@ const nearestRemembrance = (artists: MemorialArtist[], today: Date) => artists.r
 }, null);
 
 function HomeLoading() {
-  return <main className="memorial-shell" aria-label="Đang tải">
-    <div className="memorial-hero">
-      <div><div className="memorial-skeleton" style={{ width: "48%", height: 14, marginBottom: 36 }} /><div className="memorial-skeleton" style={{ width: "90%", height: 80, marginBottom: 16 }} /><div className="memorial-skeleton" style={{ width: "65%", height: 60 }} /></div>
-      <div className="memorial-skeleton" style={{ aspectRatio: "3 / 4" }} />
+  return <main aria-label="Đang tải">
+    <div className="home-hero">
+      <div className="home-hero-frame memorial-skeleton" />
+      <div className="memorial-shell home-hero-body">
+        <div><div className="memorial-skeleton" style={{ width: "86%", height: 64, marginBottom: 14 }} /><div className="memorial-skeleton" style={{ width: "58%", height: 64 }} /></div>
+        <div><div className="memorial-skeleton" style={{ height: 44, marginBottom: 20 }} /><div className="memorial-skeleton" style={{ height: 52 }} /></div>
+      </div>
     </div>
-    <div className="memorial-skeleton" style={{ height: 54, width: "40%", marginBottom: 32 }} />
-    <div className="memorial-skeleton" style={{ height: 180 }} />
   </main>;
 }
 
@@ -104,28 +105,34 @@ export default function MemorialHome() {
   return <div className="memorial">
     <MemorialHeader />
     {isLoading ? <HomeLoading /> : error ? <main className="memorial-shell memorial-not-found"><h1 className="memorial-section-title">Chưa tải được trang tưởng niệm</h1><p>Đường truyền có thể đang gián đoạn. Bạn có thể thử tải lại.</p><div className="memorial-retry-actions"><button type="button" className="memorial-button" disabled={isFetching} onClick={() => void refetch()}>{isFetching ? "Đang tải lại…" : "Thử tải lại"}</button><Link className="memorial-text-link" to="/danh-sach">Xem danh sách</Link></div></main> : <main>
-      <section className="memorial-home-hero" aria-label="Tưởng nhớ những người đã khuất" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
-        <div className="memorial-home-hero-photo">
-          {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ Sỹ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" fetchPriority="high" />}
+      <section className="home-hero" aria-labelledby="home-hero-title" data-remembrance={showRemembrance ? (remembranceToday ? "today" : "upcoming") : undefined}>
+        <div className="home-hero-frame">
+          {memorialImages.entrance && <img src={memorialImages.entrance} alt="Lối vào Đường Nghệ Sỹ với tảng đá khắc tên giữa luống hoa, Hoa Viên Bình Dương" {...{ fetchpriority: "high" }} />}
+          <span className="home-hero-light" aria-hidden="true" />
         </div>
-        <div className="memorial-shell memorial-home-hero-body">
-          <h1 className="memorial-display">Tưởng nhớ những người <em>đã để lại dấu ấn.</em></h1>
-          <p className="memorial-hero-lead">Cùng nhớ về cuộc đời và sự nghiệp của các nghệ sỹ và danh nhân đang an nghỉ tại Hoa Viên Bình Dương.</p>
-          <form className="memorial-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); navigate(search.trim() ? `/tra-cuu?q=${encodeURIComponent(search.trim())}` : "/tra-cuu"); }}>
-            <Search size={20} aria-hidden="true" />
-            <input type="search" aria-label="Tìm theo tên" placeholder="Tìm một tên" value={search} onChange={(event) => setSearch(event.target.value)} />
-            <button className="memorial-button" type="submit">Tìm</button>
-          </form>
-          {showRemembrance && heroRemembrance && <Link className="memorial-hero-remembrance" to={artistHref(heroRemembrance.artist)}>
+        <div className="memorial-shell home-hero-body">
+          <h1 id="home-hero-title" className="home-hero-title"><span className="home-hero-line"><span>Tưởng nhớ những người</span></span><span className="home-hero-line"><em>đã để lại dấu ấn.</em></span></h1>
+          <div className="home-hero-side">
+            <p className="home-hero-lede">Cuộc đời, tác phẩm và nơi an nghỉ của các nghệ sỹ, danh nhân tại Hoa Viên Bình Dương.</p>
+            <form className="memorial-hero-search home-hero-search" role="search" onSubmit={(event) => { event.preventDefault(); navigate(search.trim() ? `/tra-cuu?q=${encodeURIComponent(search.trim())}` : "/tra-cuu"); }}>
+              <Search size={20} aria-hidden="true" />
+              <input type="search" aria-label="Tìm theo tên" placeholder="Tìm một tên" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <button className="memorial-button" type="submit">Tìm</button>
+            </form>
+          </div>
+        </div>
+        <div className="memorial-shell home-hero-strip">
+          <p className="home-hero-today">Hôm nay, {today.getDate()} tháng {today.getMonth() + 1}</p>
+          {heroRemembrance && <Link className="home-hero-next" to={artistHref(heroRemembrance.artist)}>
             <MemorialPortrait src={heroRemembrance.artist.avatar_url} name={heroRemembrance.artist.name} loading="eager" />
-            <span className="memorial-hero-remembrance-copy">
-              <span className="memorial-hero-remembrance-status"><Flame size={18} aria-hidden="true" />{previewRemembrance && "Bản xem thử · "}{remembranceToday ? "Hôm nay là ngày tưởng niệm" : `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng niệm`}</span>
-              <strong>{heroRemembrance.artist.name}</strong>
-              <span className="memorial-hero-remembrance-meta">{remembranceToday ? `Tròn ${heroRemembrance.years} năm ngày mất` : `${heroRemembrance.years} năm ngày mất`} · {heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</span>
-              {otherRemembrances > 0 && <span className="memorial-hero-remembrance-others">và {otherRemembrances} người khác có ngày tưởng niệm trong tuần này</span>}
-              <span className="memorial-hero-remembrance-cta">Tưởng niệm<ArrowRight size={17} aria-hidden="true" /></span>
+            <span>
+              <small>{previewRemembrance && "Bản xem thử · "}{remembranceToday ? "Hôm nay là ngày tưởng niệm" : showRemembrance ? `Còn ${heroRemembrance.daysUntil} ngày đến ngày tưởng niệm` : "Ngày tưởng niệm sắp tới"}</small>
+              <strong>{heroRemembrance.artist.name}<span>{heroRemembrance.date.getDate()}/{heroRemembrance.date.getMonth() + 1}</span></strong>
+              {showRemembrance && otherRemembrances > 0 && <small>và {otherRemembrances} người khác trong tuần này</small>}
             </span>
+            <ArrowRight size={18} aria-hidden="true" />
           </Link>}
+          <nav className="home-hero-forms" aria-label="Xem theo lĩnh vực">{artForms.map(({ form }) => <Link key={form} to={`/tra-cuu?linhvuc=${encodeURIComponent(form)}`}>{form}</Link>)}</nav>
         </div>
       </section>
 
