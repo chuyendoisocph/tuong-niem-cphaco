@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 .memorial {
-  --paper: #fdfcf8;
-  --paper-mid: #f8f3e3;
-  --paper-gold: #f3e5ab;
-  --surface: #f6f1e2;
-  --navy: #1e3a5f;
-  --navy-soft: #55657a;
-  --prose: #3f4f63;
-  --gold: #c5a059;
-  --gold-text: #806225;
-  --rule: #e6ddc6;
+  --paper: #f4f6fa;
+  --paper-mid: #eceff5;
+  --paper-gold: #e4eaf5;
+  --surface: #ebeef4;
+  --navy: #1f3f7a;
+  --navy-soft: #52607a;
+  --prose: #34425c;
+  --gold: #daa64a;
+  --gold-text: #8f5730;
+  --rule: #d9dce6;
   --error: #9b2c2c;
   position: relative;
   isolation: isolate;
@@ -106,7 +106,7 @@
 .memorial:has(.memorial-home-hero)::after { display: none; }
 .memorial-home-hero-photo { position: relative; height: max(320px, min(56.25vw, 62svh, 720px)); overflow: hidden; background: var(--surface); }
 .memorial-home-hero-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 30% 45%; }
-.memorial-home-hero-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(253 252 248 / .3) 0%, rgb(253 252 248 / 0) 16%, rgb(253 252 248 / 0) 64%, rgb(253 252 248 / .82) 88%, var(--paper) 100%); }
+.memorial-home-hero-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(244 246 250 / .3) 0%, rgb(244 246 250 / 0) 16%, rgb(244 246 250 / 0) 64%, rgb(244 246 250 / .82) 88%, var(--paper) 100%); }
 .memorial-home-hero-body { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "title remembrance" "lead remembrance" "search remembrance"; align-items: start; column-gap: clamp(2rem, 5vw, 5rem); margin-top: clamp(-6.5rem, -7vw, -3rem); padding-bottom: clamp(3rem, 6vw, 5.5rem); }
 .memorial-home-hero:not([data-remembrance]) .memorial-home-hero-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "lead" "search"; }
 .memorial-home-hero h1 { grid-area: title; max-width: 46rem; margin: 0 0 1.3rem; color: var(--navy); font-size: clamp(2.9rem, 5vw, 4.8rem); line-height: 1.06; letter-spacing: -.03em; }
@@ -118,8 +118,8 @@
 .memorial-hero-search input::placeholder { color: var(--navy-soft); }
 .memorial-hero-search .memorial-button { flex: none; min-height: 44px; padding-inline: 1.4rem; }
 .memorial .memorial-hero-remembrance { grid-area: remembrance; justify-self: end; display: flex; flex-direction: column; gap: 1.1rem; width: 16rem; margin-top: clamp(-17rem, -19vw, -10rem); color: var(--navy); }
-.memorial-hero-remembrance .memorial-portrait { width: 100%; aspect-ratio: 3 / 4; padding: 8px; background: var(--paper); box-shadow: 0 1px 2px rgb(30 58 95 / .12), 0 26px 50px -14px rgb(20 40 60 / .42); }
-[data-remembrance='today'] .memorial-hero-remembrance .memorial-portrait { box-shadow: 0 0 0 1px rgb(197 160 89 / .55), 0 26px 56px -12px rgb(150 110 40 / .5); }
+.memorial-hero-remembrance .memorial-portrait { width: 100%; aspect-ratio: 3 / 4; padding: 8px; background: var(--paper); box-shadow: 0 1px 2px rgb(31 63 122 / .12), 0 26px 50px -14px rgb(20 40 60 / .42); }
+[data-remembrance='today'] .memorial-hero-remembrance .memorial-portrait { box-shadow: 0 0 0 1px rgb(218 166 74 / .55), 0 26px 56px -12px rgb(150 110 40 / .5); }
 .memorial-hero-remembrance-copy { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
 .memorial-hero-remembrance-status { display: inline-flex; align-items: center; gap: .45rem; color: var(--gold-text); font-size: .95rem; font-weight: 600; line-height: 1.4; }
 .memorial-hero-remembrance strong { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.45rem, 2.1vw, 1.8rem); font-weight: 500; line-height: 1.2; }
@@ -175,7 +175,7 @@
 
 .memorial-listen-band { margin-top: clamp(1rem, 3vw, 2.5rem); border-block: 1px solid var(--rule); background: var(--surface); }
 .memorial-listen { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); align-items: center; gap: clamp(2rem, 5vw, 4.5rem); }
-.memorial-listen-portrait .memorial-portrait { padding: 8px; background: var(--paper); box-shadow: 0 1px 2px rgb(30 58 95 / .12), 0 22px 44px -16px rgb(20 40 60 / .35); }
+.memorial-listen-portrait .memorial-portrait { padding: 8px; background: var(--paper); box-shadow: 0 1px 2px rgb(31 63 122 / .12), 0 22px 44px -16px rgb(20 40 60 / .35); }
 .memorial-listen-copy { max-width: 40rem; }
 .memorial-listen-context { display: inline-flex; align-items: center; gap: .45rem; margin: 0 0 .9rem; color: var(--gold-text); font-size: .95rem; font-weight: 600; }
 .memorial-listen-copy h3 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.2rem, 4.5vw, 3.6rem); font-weight: 500; line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
@@ -288,7 +288,7 @@
 .memorial-video button { position: relative; padding: 0; background: none; cursor: pointer; }
 .memorial-video img { object-fit: cover; transition: opacity .2s ease; }
 .memorial-video button:hover img, .memorial-video button:focus-visible img { opacity: .85; }
-.memorial-video-play { position: absolute; top: 50%; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; background: rgb(253 252 248 / .92); color: var(--navy); transform: translate(-50%, -50%); box-shadow: 0 8px 24px rgb(0 0 0 / .3); }
+.memorial-video-play { position: absolute; top: 50%; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; background: rgb(244 246 250 / .92); color: var(--navy); transform: translate(-50%, -50%); box-shadow: 0 8px 24px rgb(0 0 0 / .3); }
 .memorial-video-play svg { margin-left: 4px; }
 .memorial-excerpt { max-width: 36rem; margin: 1rem 0 0; padding-left: 1.2rem; border-left: 2px solid var(--gold); }
 .memorial-excerpt blockquote { margin: 0; color: var(--prose); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.05rem, 1.6vw, 1.2rem); font-style: italic; line-height: 1.8; white-space: pre-line; }
@@ -515,10 +515,10 @@
 @keyframes memorial-settle { from { transform: scale(1.06); filter: saturate(.7); } to { transform: scale(1); filter: saturate(1); } }
 
 /* Home page: the band is the peak of the scroll, the wall is its second beat. */
-.memorial-listen-band { --navy: #fdfcf8; --navy-soft: #bcc7d4; --prose: #dbe1e8; --gold-text: #e3c88a; --rule: rgb(253 252 248 / .18); margin-top: 0; border-block: 0; background: #1e3a5f; color: #fdfcf8; }
+.memorial-listen-band { --navy: #f4f6fa; --navy-soft: #b9b9c9; --prose: #dfe5f0; --gold-text: #daa64a; --rule: rgb(244 246 250 / .18); margin-top: 0; border-block: 0; background: #1f3f7a; color: #f4f6fa; }
 .memorial-listen-band > .memorial-section > .memorial-section-title { margin: 0 0 clamp(2rem, 4vw, 3.2rem); }
-.memorial-listen-band .memorial-button { background: var(--paper-gold); color: #1e3a5f; }
-.memorial-listen-band .memorial-video-play { color: #1e3a5f; }
+.memorial-listen-band .memorial-button { background: #daa64a; color: #1f3f7a; }
+.memorial-listen-band .memorial-video-play { color: #1f3f7a; }
 .memorial-listen-band .memorial-listen { grid-template-columns: minmax(0, 1fr); align-items: start; }
 .memorial-listen-band .memorial-listen[data-media='true'] { grid-template-columns: minmax(0, 5fr) minmax(0, 8fr); }
 .memorial-listen-band .memorial-listen-portrait { display: block; width: clamp(7rem, 11vw, 9.5rem); margin-bottom: 1.6rem; }
@@ -537,9 +537,9 @@
 .memorial-wall-face .memorial-portrait { height: 100%; aspect-ratio: auto; }
 .memorial-wall-face:first-child .memorial-portrait { position: absolute; inset: 0; height: auto; }
 .memorial-wall-face img { object-position: 50% 18%; }
-.memorial-wall-face > span { position: absolute; inset: auto 0 0; display: block; padding: 3rem .9rem .8rem; background: linear-gradient(180deg, rgb(15 26 41 / 0), rgb(15 26 41 / .86)); color: #fdfcf8; pointer-events: none; }
+.memorial-wall-face > span { position: absolute; inset: auto 0 0; display: block; padding: 3rem .9rem .8rem; background: linear-gradient(180deg, rgb(15 30 60 / 0), rgb(15 30 60 / .86)); color: #f4f6fa; pointer-events: none; }
 .memorial-wall-face strong { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(.95rem, 1.35vw, 1.15rem); font-weight: 500; line-height: 1.25; }
-.memorial-wall-face small { display: block; margin-top: .15rem; color: #dbe1e8; font-size: .8rem; }
+.memorial-wall-face small { display: block; margin-top: .15rem; color: #dfe5f0; font-size: .8rem; }
 .memorial-wall-face:first-child strong { font-size: clamp(1.4rem, 2.6vw, 2.2rem); }
 .memorial-wall-face:first-child > span { padding: 5rem 1.3rem 1.1rem; }
 .memorial-wall-face:focus-visible { outline: 2px solid var(--gold-text); outline-offset: -4px; }
@@ -564,7 +564,7 @@
 
 .memorial-home-hero-photo { background: var(--paper); }
 .memorial-home-hero-photo img { height: calc(100% - 2px); }
-.memorial ::selection { background: #f3e5ab; color: #1e3a5f; }
+.memorial ::selection { background: #6ea8e1; color: #0f1e3c; }
 .memorial-month-section .memorial-artist-grid, .memorial-month-section .memorial-artist-grid[data-many='true'] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 1.2rem 2rem; }
 .memorial-month-section .memorial-artist-card { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; gap: 1rem; }
 .memorial-month-section .memorial-artist-card-meta { padding-top: 0; }
@@ -614,7 +614,7 @@
 .memorial-sources a:hover { color: var(--gold-text); }
 
 /* Site footer: closes every page on the same navy as the home page band. */
-.memorial-footer { --navy: #fdfcf8; --navy-soft: #bcc7d4; --prose: #dbe1e8; --gold-text: #e3c88a; --rule: rgb(253 252 248 / .18); margin-top: clamp(2.5rem, 5vw, 4rem); padding-block: clamp(3rem, 6vw, 4.5rem) 2rem; background: #1e3a5f; color: var(--prose); font-size: .95rem; }
+.memorial-footer { --navy: #f4f6fa; --navy-soft: #b9b9c9; --prose: #dfe5f0; --gold-text: #daa64a; --rule: rgb(244 246 250 / .18); margin-top: clamp(2.5rem, 5vw, 4rem); padding-block: clamp(3rem, 6vw, 4.5rem) 2rem; background: #1f3f7a; color: var(--prose); font-size: .95rem; }
 .memorial-footer-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)); gap: 2.5rem clamp(1.5rem, 4vw, 3.5rem); }
 .memorial-footer-about p { max-width: 26rem; margin: 1.1rem 0 0; color: var(--prose); line-height: 1.65; }
 .memorial-footer .memorial-brand { color: var(--navy); }

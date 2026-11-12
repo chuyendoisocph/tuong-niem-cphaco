@@ -31,7 +31,7 @@ const isPublic = (profile) => (profile.avatar_url?.trim() || (profile.biography?
 // Cloudinary portraits are fitted whole into the 1200x630 card Facebook and Zalo show, on the site's paper colour.
 function shareImage(url) {
   if (!url) return origin ? `${origin}/icon-512.png` : null;
-  return url.replace(/res\.cloudinary\.com\/([^/]+)\/image\/upload\//, "res.cloudinary.com/$1/image/upload/c_pad,w_1200,h_630,b_rgb:f6f1e2,f_jpg/");
+  return url.replace(/res\.cloudinary\.com\/([^/]+)\/image\/upload\//, "res.cloudinary.com/$1/image/upload/c_pad,w_1200,h_630,b_rgb:f4f6fa,f_jpg/");
 }
 
 function setTag(html, pattern, tag) {
